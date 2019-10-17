@@ -8,6 +8,7 @@
 
 """Blueprint for user authentication and the user manager service."""
 
+from contextlib import contextmanager
 from flask import Blueprint, jsonify, make_response, request
 
 from robcore.api.service.user import UserService
@@ -61,39 +62,23 @@ def register_user():
     return make_response(jsonify(response), 201)
 
 
-# -- Helper class to instantiate and close the user service --------------------
+# -- Helper methods to create instance of user service -------------------------
 
-class Service(object):
-    """The local service object is a context manager for an instance of the user
-    service class for the ROB API. The context manager maintains an open
-    database connection and ensures that the connection is closed when the
-    guard exit method is called.
+@contextmanager
+def service():
+    """The local service function is a context manager for an open database
+    connection that is used to instantiate the user service class for the ROB
+    API. The context manager ensures that the database conneciton in closed
+    after a API request has been processed.
+
+    Returns
+    -------
+    robcore.model.user.base.UserManager
     """
-    def __init__(self):
-        """Open a connection to the underlying database."""
-        self.con = DatabaseDriver.get_connector().connect()
-
-    def __enter__(self):
-        """The enter method of the service guard returns a new instance of the
-        user service.
-
-        Returns
-        -------
-        robcore.model.user.base.UserManager
-        """
-        return UserService(
+        con = DatabaseDriver.get_connector().connect()
+        user_service = UserService(
             manager=UserManager(con=self.con),
             auth=DefaultAuthPolicy(con=self.con)
         )
-
-    def __exit__(self, type, value, traceback):
-        """Close the database connection. Always returns False to ensure that
-        potential exception are re-raised.
-
-        Returns
-        -------
-        bool
-        """
-        self.con.close()
-        # Ensure that exceptions are re-raised
-        return False
+        yield user_service
+        con.close()
