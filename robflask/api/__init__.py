@@ -46,8 +46,24 @@ def create_app():
     # --------------------------------------------------------------------------
     # Define error handlers
     # --------------------------------------------------------------------------
+    @app.errorhandler(err.ConstraintViolationError)
+    def invalid_request_action(error):
+        """JSON response handler for requests that violate an application
+        constraint.
+
+        Parameters
+        ----------
+        error : Exception
+            Exception thrown by request Handler
+
+        Returns
+        -------
+        Http response
+        """
+        return make_response(jsonify({'message': str(error)}), 400)
+
     @app.errorhandler(err.InvalidRequest)
-    def invalid_request(error):
+    def invalid_request_body(error):
         """JSON response handler for requests that do not contain a valid
         request body.
 
@@ -61,6 +77,21 @@ def create_app():
         Http response
         """
         return make_response(jsonify({'message': str(error)}), 400)
+
+    @app.errorhandler(err.UnauthenticatedAccessError)
+    def unauthenticated_access(error):
+        """JSON response handler for unauthenticated requests.
+
+        Parameters
+        ----------
+        error : Exception
+            Exception thrown by request Handler
+
+        Returns
+        -------
+        Http response
+        """
+        return make_response(jsonify({'message': str(error)}), 403)
 
     @app.errorhandler(err.UnknownObjectError)
     def resource_not_found(error):
@@ -95,10 +126,10 @@ def create_app():
     # Import blueprints for API components
     # --------------------------------------------------------------------------
     # Service Descriptor
-    import robflask.service.descriptor as descriptor
+    import robflask.api.descriptor as descriptor
     app.register_blueprint(descriptor.bp)
     # User Service
-    import robflask.service.users as users
+    import robflask.api.users as users
     app.register_blueprint(users.bp)
     # Return the app
     return app

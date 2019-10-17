@@ -10,7 +10,11 @@
 already defined and raised by API service components of ROB core).
 """
 
-from robcore.error import UnknownObjectError
+from robcore.error import (
+    ConstraintViolationError,
+    UnauthenticatedAccessError,
+    UnknownObjectError
+)
 
 
 class InvalidRequest(Exception):
