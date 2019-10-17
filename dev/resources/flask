@@ -1,0 +1,4 @@
+# Set Flask environment variables containing the path to the application
+# and to run Flask in development mode
+export FLASK_APP=robflask.service
+export FLASK_ENV=development
