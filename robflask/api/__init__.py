@@ -128,8 +128,11 @@ def create_app():
     # Service Descriptor
     import robflask.api.descriptor as descriptor
     app.register_blueprint(descriptor.bp)
+    # Benchmark Service
+    import robflask.api.benchmark as benchmarks
+    app.register_blueprint(benchmarks.bp)
     # User Service
-    import robflask.api.users as users
+    import robflask.api.user as users
     app.register_blueprint(users.bp)
     # Return the app
     return app
