@@ -12,16 +12,26 @@ is under the control of of a context manager to ensure that the connection is
 closed properly after every API request has been handled.
 """
 
+import os
+
 from contextlib import contextmanager
 
 from robcore.api.route import UrlFactory
+from robcore.api.service.benchmark import BenchmarkService
 from robcore.api.service.user import UserService
 from robcore.db.driver import DatabaseDriver
+from robcore.model.template.repo.benchmark import BenchmarkRepository
+from robcore.model.template.repo.fs import TemplateFSRepository
 from robcore.model.user.base import UserManager
 from robcore.model.user.auth import DefaultAuthPolicy
 
 import robcore.util as util
+import robflask.config as config
 import robflask.error as err
+
+
+"""Default directory name for benchmark templates."""
+BENCHMARKS_DIR = 'benchmarks'
 
 
 class API(object):
@@ -41,9 +51,11 @@ class API(object):
         """
         self.con = con
         self.urls = UrlFactory()
-        # Keep a copy of the authentication object (only if created or requested
-        # by one of the components that handle an API request).
+        # Keep a copy of objects that may be used by multiple components of the
+        # API. Use the respective get method for each of them to ensure that
+        # the object is instantiated before access.
         self._auth = None
+        self._repo = None
 
     def auth(self):
         """Get authentication handler. The object is create only once.
@@ -75,8 +87,35 @@ class API(object):
         """
         return self.auth().authenticate(request.headers.get('api_key'))
 
+    def benchmarks(self):
+        """Get instance of the benchmark service component.
+
+        Returns
+        -------
+        robcore.api.service.benchmark.BenchmarkService
+        """
+        return BenchmarkService(
+            repo=self.benchmark_repository(),
+            urls=self.urls
+        )
+
+    def benchmark_repository(self):
+        """Get instance of the benchmark repository.
+
+        Returns
+        -------
+        robcore.model.template.repo.benchmark.BenchmarkRepository
+        """
+        if self._repo is None:
+            # Create an instance of the template and benchmark repository. The
+            # current configuration uses the file syste repository.
+            benchmark_dir = os.path.join(config.API_BASEDIR(), BENCHMARKS_DIR)
+            repo = TemplateFSRepository(base_dir=util.create_dir(benchmark_dir))
+            self._repo = BenchmarkRepository(con=self.con, template_repo=repo)
+        return self._repo
+
     def users(self):
-        """Get an instance of the user service component.
+        """Get instance of the user service component.
 
         Returns
         -------
@@ -141,5 +180,4 @@ def service():
     """
     con = DatabaseDriver.get_connector().connect()
     yield API(con)
-    print('closing connection')
     con.close()

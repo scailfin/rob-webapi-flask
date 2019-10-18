@@ -18,7 +18,8 @@ install_requires=[
     'future',
     'rob-core>=0.1.0',
     'flask',
-    'flask_cors'
+    'flask_cors',
+    'Click'
 ]
 
 
@@ -72,6 +73,11 @@ setup(
     extras_require=extras_require,
     tests_require=tests_require,
     install_requires=install_requires,
+    entry_points={
+        'console_scripts': [
+            'robadm = robflask.cli.admin:cli',
+        ]
+    },
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',

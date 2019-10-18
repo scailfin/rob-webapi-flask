@@ -17,7 +17,8 @@ expected to remain constant throughout the lifespan of a running application.
 
 import os
 
-import robcore.config.api as config
+from robcore.config.api import API_BASEDIR
+
 import robcore.util as util
 
 
@@ -41,6 +42,6 @@ def LOG_DIR():
     log_dir = os.environ.get(ROB_WEBAPI_LOG)
     # If the variable is not set create a sub-folder in the API base directory
     if log_dir is None:
-        log_dir = os.path.join(config.API_BASEDIR(), 'log')
+        log_dir = os.path.join(API_BASEDIR(), 'log')
     # Create the log directory if it does not exist
     return util.create_dir(os.path.abspath(log_dir))

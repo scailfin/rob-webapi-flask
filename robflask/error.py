@@ -12,6 +12,7 @@ already defined and raised by API service components of ROB core).
 
 from robcore.error import (
     ConstraintViolationError,
+    MissingConfigurationError,
     UnauthenticatedAccessError,
     UnknownObjectError
 )
