@@ -18,20 +18,28 @@ from contextlib import contextmanager
 
 from robcore.api.route import UrlFactory
 from robcore.api.service.benchmark import BenchmarkService
+from robcore.api.service.run import RunService
+from robcore.api.service.submission import SubmissionService
 from robcore.api.service.user import UserService
 from robcore.db.driver import DatabaseDriver
+from robcore.model.submission import SubmissionManager
 from robcore.model.template.repo.benchmark import BenchmarkRepository
 from robcore.model.template.repo.fs import TemplateFSRepository
 from robcore.model.user.base import UserManager
 from robcore.model.user.auth import DefaultAuthPolicy
+from robcore.model.workflow.engine import BenchmarkEngine
 
 import robcore.util as util
 import robflask.config as config
 import robflask.error as err
 
 
-"""Default directory name for benchmark templates."""
+"""Default directory names."""
+# Directory for storing templates for created benchmarks. This is the base
+# directory for the benchmark repository.
 BENCHMARKS_DIR = 'benchmarks'
+# Directory for storing files that are uploaded by users to run submissions.
+UPLOAD_DIR = 'uploads'
 
 
 class API(object):
@@ -55,7 +63,9 @@ class API(object):
         # API. Use the respective get method for each of them to ensure that
         # the object is instantiated before access.
         self._auth = None
+        self._engine = None
         self._repo = None
+        self._submissions = None
 
     def auth(self):
         """Get authentication handler. The object is create only once.
@@ -113,6 +123,61 @@ class API(object):
             repo = TemplateFSRepository(base_dir=util.create_dir(benchmark_dir))
             self._repo = BenchmarkRepository(con=self.con, template_repo=repo)
         return self._repo
+
+    def engine(self):
+        """Get the instance of the benchmark engine.
+
+        Returns
+        -------
+        robcore.model.workflow.engine.BenchmarkEngine
+        """
+        if self._engine is None:
+            backend = config.ROB_ENGINE()
+            self._engine = BenchmarkEngine(con=self.con, backend=backend)
+        return self._engine
+
+    def runs(self):
+        """Get instance of the run service component.
+
+        Returns
+        -------
+        robcore.api.service.run.RunService
+        """
+        return RunService(
+            engine=self.engine(),
+            submissions=self.submission_manager(),
+            repo=self.benchmark_repository(),
+            auth=self.auth(),
+            urls=self.urls
+        )
+
+    def submissions(self):
+        """Get instance of the submission service component.
+
+        Returns
+        -------
+        robcore.api.service.submission.SubmissionService
+        """
+        return SubmissionService(
+            manager=self.submission_manager(),
+            auth=self.auth(),
+            urls=self.urls
+        )
+
+    def submission_manager(self):
+        """Get instance of the submission manager.
+
+        Returns
+        -------
+        robcore.model.submission.SubmissionManager
+        """
+        if self._submissions is None:
+            self._submissions = SubmissionManager(
+                con=self.con,
+                directory=os.path.join(config.API_BASEDIR(), UPLOAD_DIR),
+                engine=self.engine()
+            )
+        return self._submissions
 
     def users(self):
         """Get instance of the user service component.

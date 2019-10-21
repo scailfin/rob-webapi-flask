@@ -39,6 +39,11 @@ def get_benchmark(benchmark_id):
     """Get handle for given a benchmark. Benchmarks are available to everyone,
     independent of whether they are currently authenticated or not.
 
+    Parameters
+    ----------
+    benchmark_id: string
+        Unique benchmark identifier
+
     Returns
     -------
     flask.response_class
@@ -57,11 +62,17 @@ def get_leaderboard(benchmark_id):
     """Get leader board for a given benchmark. Benchmarks and their results are
     available to everyone, independent of whether they are authenticated or not.
 
-        order_by: list(robcore.model.template.schema.SortColumn), optional
-            Use the given attribute to sort run results. If not given the schema
-            default attribute is used
-        include_all: bool, optional
-            Include at most one entry per submission in the result if False
+    Parameters
+    ----------
+    benchmark_id: string
+        Unique benchmark identifier
+    order_by: string, optional
+        Comma-separated list of sore columns. Each column may be suffixed with
+        the sort order. Use 'ASC' for ascending sort and any other value for
+        descending sort.
+    include_all: string, optional
+        Boolean flag to indicate whether all results shoudl be included or at
+        most one result per submission.
 
     Returns
     -------

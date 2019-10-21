@@ -14,7 +14,10 @@ from robcore.error import (
     ConstraintViolationError,
     MissingConfigurationError,
     UnauthenticatedAccessError,
-    UnknownObjectError
+    UnauthorizedAccessError,
+    UnknownObjectError,
+    UnknownParameterError,
+    UnknownUserError
 )
 
 
@@ -32,3 +35,12 @@ class InvalidRequest(Exception):
         """
         Exception.__init__(self)
         self.message = message
+
+    def __str__(self):
+        """Get printable representation of the exception.
+
+        Returns
+        -------
+        string
+        """
+        return self.message

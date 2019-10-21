@@ -34,7 +34,7 @@ def list_users():
     """
     query = request.args.get('query')
     with service() as api:
-        # Authenticate the user from expected the api_token in the header. This
+        # Authenticate the user from the api_token in the header. This
         # will raise an exception if the user is currently not logged in.
         api.authenticate(request)
         r = api.users().list_users(query=query)
@@ -101,11 +101,9 @@ def logout_user():
     robflask.error.UnauthenticatedAccessError
     """
     with service() as api:
-        # Get handle for authenticated user. This will raise an error if the
+        # Logout user. Authentication will fail and raise an error if the
         # user is currently not logged in.
-        user = api.authenticate(request)
-        # Logout user
-        r = api.users().logout_user(user=user)
+        r = api.users().logout_user(user=api.authenticate(request))
     return make_response(jsonify(r), 200)
 
 

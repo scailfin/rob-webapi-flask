@@ -26,6 +26,7 @@ def create_app():
     # Create tha app. Follwoing the Twelve-Factor App methodology we configure
     # the Flask application from environment variables.
     app = Flask(__name__, instance_relative_config=True)
+    app.config['MAX_CONTENT_LENGTH'] = config.MAX_CONTENT_LENGTH()
     # Enable CORS
     CORS(app)
     # --------------------------------------------------------------------------
@@ -93,6 +94,21 @@ def create_app():
         """
         return make_response(jsonify({'message': str(error)}), 403)
 
+    @app.errorhandler(err.UnauthorizedAccessError)
+    def unauthenticated_access(error):
+        """JSON response handler for unauthorized requests.
+
+        Parameters
+        ----------
+        error : Exception
+            Exception thrown by request Handler
+
+        Returns
+        -------
+        Http response
+        """
+        return make_response(jsonify({'message': str(error)}), 403)
+
     @app.errorhandler(err.UnknownObjectError)
     def resource_not_found(error):
         """JSON response handler for requests that access unknown resources.
@@ -131,6 +147,12 @@ def create_app():
     # Benchmark Service
     import robflask.api.benchmark as benchmarks
     app.register_blueprint(benchmarks.bp)
+    # Run Service
+    import robflask.api.run as runs
+    app.register_blueprint(runs.bp)
+    # Submission Service
+    import robflask.api.submission as submissions
+    app.register_blueprint(submissions.bp)
     # User Service
     import robflask.api.user as users
     app.register_blueprint(users.bp)
