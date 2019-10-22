@@ -21,11 +21,13 @@ import robflask.error as err
 import robflask.config as config
 
 
-def create_app():
+def create_app(test_config=None):
     """Initialize the Flask application."""
     # Create tha app. Follwoing the Twelve-Factor App methodology we configure
     # the Flask application from environment variables.
     app = Flask(__name__, instance_relative_config=True)
+    if not test_config is None:
+         app.config.update(test_config)    
     app.config['MAX_CONTENT_LENGTH'] = config.MAX_CONTENT_LENGTH()
     # Enable CORS
     CORS(app)

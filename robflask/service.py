@@ -16,11 +16,11 @@ import os
 
 from contextlib import contextmanager
 
-from robcore.api.route import UrlFactory
-from robcore.api.service.benchmark import BenchmarkService
-from robcore.api.service.run import RunService
-from robcore.api.service.submission import SubmissionService
-from robcore.api.service.user import UserService
+from robcore.view.route import UrlFactory
+from robcore.service.benchmark import BenchmarkService
+from robcore.service.run import RunService
+from robcore.service.submission import SubmissionService
+from robcore.service.user import UserService
 from robcore.db.driver import DatabaseDriver
 from robcore.model.submission import SubmissionManager
 from robcore.model.template.repo.benchmark import BenchmarkRepository
@@ -32,6 +32,10 @@ from robcore.model.workflow.engine import BenchmarkEngine
 import robcore.util as util
 import robflask.config as config
 import robflask.error as err
+
+
+"""Name of the header eleemnt that contains the access token."""
+HEADER_TOKEN = 'api_key'
 
 
 """Default directory names."""
@@ -95,14 +99,14 @@ class API(object):
         ------
         robcore.error.UnauthenticatedAccessError
         """
-        return self.auth().authenticate(request.headers.get('api_key'))
+        return self.auth().authenticate(request.headers.get(HEADER_TOKEN))
 
     def benchmarks(self):
         """Get instance of the benchmark service component.
 
         Returns
         -------
-        robcore.api.service.benchmark.BenchmarkService
+        robcore.service.benchmark.BenchmarkService
         """
         return BenchmarkService(
             repo=self.benchmark_repository(),
@@ -141,7 +145,7 @@ class API(object):
 
         Returns
         -------
-        robcore.api.service.run.RunService
+        robcore.service.run.RunService
         """
         return RunService(
             engine=self.engine(),
@@ -156,7 +160,7 @@ class API(object):
 
         Returns
         -------
-        robcore.api.service.submission.SubmissionService
+        robcore.service.submission.SubmissionService
         """
         return SubmissionService(
             manager=self.submission_manager(),
@@ -184,7 +188,7 @@ class API(object):
 
         Returns
         -------
-        robcore.api.service.user.UserService
+        robcore.service.user.UserService
         """
         return UserService(
             manager=UserManager(con=self.con),

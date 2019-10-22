@@ -13,7 +13,7 @@ from werkzeug.utils import secure_filename
 
 from robflask.service import jsonbody, service
 
-import robcore.api.serialize.labels as labels
+import robcore.view.labels as labels
 import robcore.config.api as config
 import robflask.error as err
 
@@ -317,7 +317,11 @@ def download_file(submission_id, file_id):
             file_id=file_id,
             user=api.authenticate(request)
         )
-    return send_file(fh.filepath, as_attachment=True, attachment_filename=fh.file_name)
+    return send_file(
+        fh.filepath,
+        as_attachment=True,
+        attachment_filename=fh.file_name
+    )
 
 
 @bp.route('/submissions/<string:submission_id>/files/<string:file_id>', methods=['DELETE'])

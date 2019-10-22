@@ -10,7 +10,7 @@
 
 from flask import Blueprint, jsonify
 
-from robcore.api.service.server import Service
+from robcore.service.server import Service
 
 import robcore.config.api as config
 

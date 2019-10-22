@@ -13,7 +13,7 @@ from flask import Blueprint, jsonify, make_response, request
 from robcore.model.template.schema import SortColumn
 from robflask.service import jsonbody, service
 
-import robcore.api.serialize.labels as labels
+import robcore.view.labels as labels
 import robcore.config.api as config
 
 
