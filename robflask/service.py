@@ -27,15 +27,11 @@ from robcore.service.benchmark import BenchmarkService
 from robcore.service.run import RunService
 from robcore.service.submission import SubmissionService
 from robcore.service.user import UserService
-from robcore.view.route import UrlFactory
+from robcore.view.route import UrlFactory, HEADER_TOKEN
 
 import robcore.util as util
 import robflask.config as config
 import robflask.error as err
-
-
-"""Name of the header eleemnt that contains the access token."""
-HEADER_TOKEN = 'api_key'
 
 
 """Default directory names."""
