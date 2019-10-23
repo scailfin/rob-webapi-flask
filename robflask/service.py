@@ -16,18 +16,18 @@ import os
 
 from contextlib import contextmanager
 
-from robcore.view.route import UrlFactory
-from robcore.service.benchmark import BenchmarkService
-from robcore.service.run import RunService
-from robcore.service.submission import SubmissionService
-from robcore.service.user import UserService
+from robcore.controller.engine import BenchmarkEngine
 from robcore.db.driver import DatabaseDriver
 from robcore.model.submission import SubmissionManager
 from robcore.model.template.repo.benchmark import BenchmarkRepository
 from robcore.model.template.repo.fs import TemplateFSRepository
 from robcore.model.user.base import UserManager
 from robcore.model.user.auth import DefaultAuthPolicy
-from robcore.model.workflow.engine import BenchmarkEngine
+from robcore.service.benchmark import BenchmarkService
+from robcore.service.run import RunService
+from robcore.service.submission import SubmissionService
+from robcore.service.user import UserService
+from robcore.view.route import UrlFactory
 
 import robcore.util as util
 import robflask.config as config
@@ -133,7 +133,7 @@ class API(object):
 
         Returns
         -------
-        robcore.model.workflow.engine.BenchmarkEngine
+        robcore.model.controller.BenchmarkEngine
         """
         if self._engine is None:
             backend = config.ROB_ENGINE()

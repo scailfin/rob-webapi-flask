@@ -12,9 +12,9 @@ from flask import Blueprint, jsonify, make_response, request, send_file
 
 from robflask.service import jsonbody, service
 
-import robcore.view.labels as labels
 import robcore.config.api as config
 import robcore.util as util
+import robcore.view.labels as labels
 import robflask.error as err
 
 

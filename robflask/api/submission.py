@@ -13,8 +13,8 @@ from werkzeug.utils import secure_filename
 
 from robflask.service import jsonbody, service
 
-import robcore.view.labels as labels
 import robcore.config.api as config
+import robcore.view.labels as labels
 import robflask.error as err
 
 

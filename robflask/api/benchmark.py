@@ -13,8 +13,8 @@ from flask import Blueprint, jsonify, make_response, request
 from robcore.model.template.schema import SortColumn
 from robflask.service import jsonbody, service
 
-import robcore.view.labels as labels
 import robcore.config.api as config
+import robcore.view.labels as labels
 
 
 bp = Blueprint('benchmarks', __name__, url_prefix=config.API_PATH())
