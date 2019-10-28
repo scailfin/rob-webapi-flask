@@ -42,6 +42,13 @@ BENCHMARKS_DIR = 'benchmarks'
 UPLOAD_DIR = 'uploads'
 
 
+"""Define the workflow backend as a global variable. This is necessary for the
+multi-porcess backend to be able to maintain process state in between API
+requests.
+"""
+backend = config.ROB_ENGINE()
+
+
 class API(object):
     """The API object implements a factory pattern for all API components. The
     individual components are instantiated on-demand to avoid any overhead for
@@ -132,7 +139,6 @@ class API(object):
         robcore.model.controller.BenchmarkEngine
         """
         if self._engine is None:
-            backend = config.ROB_ENGINE()
             self._engine = BenchmarkEngine(con=self.con, backend=backend)
         return self._engine
 
@@ -161,6 +167,7 @@ class API(object):
         return SubmissionService(
             manager=self.submission_manager(),
             auth=self.auth(),
+            repo=self.benchmark_repository(),
             urls=self.urls
         )
 
