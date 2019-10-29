@@ -165,6 +165,7 @@ class API(object):
         robcore.service.submission.SubmissionService
         """
         return SubmissionService(
+            engine=self.engine(),
             manager=self.submission_manager(),
             auth=self.auth(),
             repo=self.benchmark_repository(),

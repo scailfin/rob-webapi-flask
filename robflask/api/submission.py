@@ -14,6 +14,7 @@ from werkzeug.utils import secure_filename
 from robflask.service import jsonbody, service
 
 import robcore.config.api as config
+import robcore.model.template.parameter.util as pd
 import robcore.view.labels as labels
 import robflask.error as err
 
@@ -45,12 +46,18 @@ def create_submission(benchmark_id):
     obj = jsonbody(
         request,
         mandatory_labels=[labels.NAME],
-        optional_labels=[labels.MEMBERS]
+        optional_labels=[labels.MEMBERS, labels.PARAMETERS]
     )
     name = obj[labels.NAME]
     members = obj[labels.MEMBERS] if labels.MEMBERS in obj else None
     if not members is None and not isinstance(members, list):
         raise err.InvalidRequest('members not a list')
+    parameters = None
+    if labels.PARAMETERS in obj:
+        parameters = pd.create_parameter_index(
+                obj[labels.PARAMETERS],
+                validate=True
+            )
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -58,6 +65,7 @@ def create_submission(benchmark_id):
             r = api.submissions().create_submission(
                 benchmark_id=benchmark_id,
                 name=name,
+                parameters=parameters,
                 user=api.authenticate(request),
                 members=members
             )
