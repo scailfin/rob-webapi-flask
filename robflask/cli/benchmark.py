@@ -160,7 +160,7 @@ def update_benchmark(identifier, name=None, description=None, instructions=None)
 # Command Group
 # ------------------------------------------------------------------------------
 
-@click.group(name='benchmark')
+@click.group(name='benchmarks')
 def benchmarkcli():
     """Create, delete, and maintain benchmarks."""
     pass
