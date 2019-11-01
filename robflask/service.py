@@ -25,6 +25,7 @@ from robcore.model.user.base import UserManager
 from robcore.model.user.auth import DefaultAuthPolicy
 from robcore.service.benchmark import BenchmarkService
 from robcore.service.run import RunService
+from robcore.service.server import Service
 from robcore.service.submission import SubmissionService
 from robcore.service.user import UserService
 from robcore.view.route import UrlFactory, HEADER_TOKEN
@@ -73,6 +74,7 @@ class API(object):
         self._engine = None
         self._repo = None
         self._submissions = None
+        self._users = None
 
     def auth(self):
         """Get authentication handler. The object is create only once.
@@ -157,6 +159,17 @@ class API(object):
             urls=self.urls
         )
 
+    def service_descriptor(self, request):
+        """Get the serialization of the service descriptor. If the request
+        contains an access token it is verified that the token is still
+        active.
+        """
+        try:
+            username = self.authenticate(request).name
+        except err.UnauthenticatedAccessError:
+            username = None
+        return Service().service_descriptor(username=username)
+
     def submissions(self):
         """Get instance of the submission service component.
 
@@ -194,10 +207,12 @@ class API(object):
         -------
         robcore.service.user.UserService
         """
-        return UserService(
-            manager=UserManager(con=self.con),
-            urls=self.urls
-        )
+        if self._users is None:
+            self._users = UserService(
+                manager=UserManager(con=self.con),
+                urls=self.urls
+            )
+        return self._users
 
 
 # -- Helper methods for API request handling -----------------------------------

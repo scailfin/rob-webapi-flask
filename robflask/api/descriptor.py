@@ -8,11 +8,12 @@
 
 """Blueprint for the service descriptor."""
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
-from robcore.service.server import Service
+from robflask.service import service
 
 import robcore.config.api as config
+import robflask.error as err
 
 
 bp = Blueprint('service', __name__, url_prefix=config.API_PATH())
@@ -20,4 +21,7 @@ bp = Blueprint('service', __name__, url_prefix=config.API_PATH())
 @bp.route('/', methods=['GET'])
 def service_descriptor():
     """Get the API service descriptor."""
-    return jsonify(Service().service_descriptor()), 200
+    # If the request contains an access token we validate that the token is
+    # still active
+    with service() as api:
+        return jsonify(api.service_descriptor(request)), 200
