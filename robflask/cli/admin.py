@@ -40,6 +40,8 @@ def init(dir=None):
     are taken from the respective environment variables. Creates the API base
     directory if it does not exist.
     """
+    click.echo('This will erase an existing database.')
+    click.confirm('Continue?', default=True, abort=True)
     # Create a new instance of the database
     try:
         DB.init()

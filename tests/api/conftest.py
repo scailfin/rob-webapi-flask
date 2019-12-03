@@ -59,7 +59,7 @@ def client():
     app = api.create_app({'TESTING': True})
     with app.test_client() as client:
         yield client
-    # Clean up delets the database file
+    # Clean up deletes the database file
     os.close(db_fd)
     os.unlink(db_filename)
 

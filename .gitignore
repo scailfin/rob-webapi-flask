@@ -75,7 +75,7 @@ target/
 
 # Ignore the copy of the API documentation and local config files
 dev/resources/api/
-dev/resources/config
+dev/resources/config/
 
 # ROB API base directory
 .rob/
