@@ -14,8 +14,8 @@ This is the default RESTful Web API implementation for the `Reproducible Open Be
 
 
 
-Install and Configure
-=====================
+Installation and Configuration
+==============================
 
 The following installation instructions assume that you install all packages in a local folder `~/projects/rob`.
 
@@ -26,7 +26,7 @@ The following installation instructions assume that you install all packages in 
     cd ~/projects/rob
 
 
-The Reproducible Open Benchmarks platform (ROB) is implemented in Python. We recommend using a `virtual environment <https://virtualenv.pypa.io/en/stable/>`_ for the installation.
+The Reproducible Open Benchmarks platform is implemented in Python. We recommend using a `virtual environment <https://virtualenv.pypa.io/en/stable/>`_ for the installation.
 
 .. code-block:: bash
 
@@ -71,7 +71,7 @@ Initialize the ROB database
 
 Initialize database and base directories for the Reproducible Open Benchmarks (ROB) Web API. The configuration parameters for the database are taken from the respective environment variables. Creates the API base directory if it does not exist.
 
-.. code-block:: text
+.. code-block:: console
 
     Usage: robadm init [OPTIONS]
 
@@ -84,7 +84,7 @@ Create and delete Benchmarks
 
 Create a new benchmark.
 
-.. code-block:: text
+.. code-block:: console
 
     Usage: robadm benchmarks create [OPTIONS]
 
@@ -100,7 +100,7 @@ Create a new benchmark.
 
 Delete a given benchmark.
 
-.. code-block:: text
+.. code-block:: console
 
     Usage: robadm benchmarks delete [OPTIONS] IDENTIFIER
 

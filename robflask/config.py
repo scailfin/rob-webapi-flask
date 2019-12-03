@@ -28,7 +28,7 @@ API.
 """
 # Directory path for API logs
 ROB_WEBAPI_LOG = 'ROB_WEBAPI_LOG'
-# maximum size of uploaded files (in bytes)
+# Maximum size of uploaded files (in bytes)
 ROB_WEBAPI_CONTENTLENGTH = 'ROB_WEBAPI_CONTENTLENGTH'
 
 
