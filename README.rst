@@ -60,6 +60,9 @@ If you run the Flask application from the command line in developer mode using `
     export FLASK_ENV=development
 
 
+There are also more detailed instructions on the `Demo Setup site <https://github.com/scailfin/rob-webapi-flask/blob/master/docs/demo-setup.rst>`_ to setup and run the Web API.
+
+
 
 Command Line Interface
 ======================

@@ -1,4 +1,4 @@
-# Reproducible Open Benchmarks - Flask Web Server - Changelog
+# Reproducible Open Benchmarks - Flask Web API - Changelog
 
 ### 0.1.0 - (ongoing)
 
