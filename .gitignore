@@ -79,3 +79,4 @@ dev/resources/config/
 
 # ROB API base directory
 .rob/
+dev/resources/localdev
