@@ -34,14 +34,21 @@ def cli():
     type=click.Path(exists=True, dir_okay=False, readable=True),
     help='Base directory for API files (overrides ROB_API_DIR).'
 )
-def init(dir=None):
+@click.option(
+    '-f', '--force',
+    is_flag=True,
+    default=False,
+    help='Create database without confirmation'
+)
+def init(dir=None, force=False):
     """Initialize database and base directories for the Reproducible Open
     Benchmarks (ROB) Web API. The configuration parameters for the database
     are taken from the respective environment variables. Creates the API base
     directory if it does not exist.
     """
-    click.echo('This will erase an existing database.')
-    click.confirm('Continue?', default=True, abort=True)
+    if not force:
+        click.echo('This will erase an existing database.')
+        click.confirm('Continue?', default=True, abort=True)
     # Create a new instance of the database
     try:
         DB.init()

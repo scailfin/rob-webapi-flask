@@ -39,6 +39,8 @@ import robflask.error as err
 # Directory for storing templates for created benchmarks. This is the base
 # directory for the benchmark repository.
 BENCHMARKS_DIR = 'benchmarks'
+# Directory for benchmark resources that are created during post-processing
+RESOURCE_DIR = 'resources'
 # Directory for storing files that are uploaded by users to run submissions.
 UPLOAD_DIR = 'uploads'
 
@@ -128,9 +130,14 @@ class API(object):
         if self._repo is None:
             # Create an instance of the template and benchmark repository. The
             # current configuration uses the file syste repository.
-            benchmark_dir = os.path.join(config.API_BASEDIR(), BENCHMARKS_DIR)
+            base_dir = config.API_BASEDIR()
+            benchmark_dir = os.path.join(base_dir, BENCHMARKS_DIR)
             repo = TemplateFSRepository(base_dir=util.create_dir(benchmark_dir))
-            self._repo = BenchmarkRepository(con=self.con, template_repo=repo)
+            self._repo = BenchmarkRepository(
+                con=self.con,
+                template_repo=repo,
+                resource_base_dir=os.path.join(base_dir, RESOURCE_DIR)
+            )
         return self._repo
 
     def engine(self):

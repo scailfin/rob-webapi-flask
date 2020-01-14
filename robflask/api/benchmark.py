@@ -8,7 +8,7 @@
 
 """Blueprint for benchmark resources and benchmark leader boards."""
 
-from flask import Blueprint, jsonify, make_response, request
+from flask import Blueprint, jsonify, make_response, request, send_file
 
 from robcore.model.template.schema import SortColumn
 from robflask.service import jsonbody, service
@@ -113,3 +113,32 @@ def get_leaderboard(benchmark_id):
             include_all=include_all
         )
     return make_response(jsonify(r), 200)
+
+
+@bp.route('/benchmarks/<string:benchmark_id>/resources/<string:resource_id>', methods=['GET'])
+def get_benchmark_resource(benchmark_id, resource_id):
+    """Download the current resource file for a benchmark resource that was
+    created during post-processing.
+
+    Parameters
+    ----------
+    benchmark_id: string
+        Unique benchmark identifier
+    resource_id: string
+        Unique resource identifier
+
+    Returns
+    -------
+    flask.response_class
+
+    Raises
+    ------
+    robflask.error.UnknownObjectError
+    """
+    with service() as api:
+        fh = api.benchmarks().get_benchmark_resource(benchmark_id, resource_id)
+    return send_file(
+        fh.filepath,
+        as_attachment=True,
+        attachment_filename=fh.file_name
+    )

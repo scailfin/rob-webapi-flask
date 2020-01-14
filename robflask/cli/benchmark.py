@@ -74,7 +74,7 @@ def add_benchmark(
                 src_repo_url=url,
                 spec_file=specfile
             )
-            click.echo('created benchmark {} as {}'.format(name, b.identifier))
+            click.echo('export ROB_BENCHMARK={}'.format(b.identifier))
         except (err.ConstraintViolationError, ValueError) as ex:
             click.echo(str(ex))
 
