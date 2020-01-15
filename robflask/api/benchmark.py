@@ -115,8 +115,8 @@ def get_leaderboard(benchmark_id):
     return make_response(jsonify(r), 200)
 
 
-@bp.route('/benchmarks/<string:benchmark_id>/resources/<string:resource_id>', methods=['GET'])
-def get_benchmark_resource(benchmark_id, resource_id):
+@bp.route('/benchmarks/<string:benchmark_id>/resources/<string:result_id>/<string:resource_id>', methods=['GET'])
+def get_benchmark_resource(benchmark_id, result_id, resource_id):
     """Download the current resource file for a benchmark resource that was
     created during post-processing.
 
@@ -124,6 +124,8 @@ def get_benchmark_resource(benchmark_id, resource_id):
     ----------
     benchmark_id: string
         Unique benchmark identifier
+    result_id: string
+        Unique identifier of the post-processing result set
     resource_id: string
         Unique resource identifier
 
@@ -136,7 +138,8 @@ def get_benchmark_resource(benchmark_id, resource_id):
     robflask.error.UnknownObjectError
     """
     with service() as api:
-        fh = api.benchmarks().get_benchmark_resource(benchmark_id, resource_id)
+        bsrv = api.benchmarks()
+        fh = bsrv.get_benchmark_resource(benchmark_id, result_id, resource_id)
     return send_file(
         fh.filepath,
         as_attachment=True,
