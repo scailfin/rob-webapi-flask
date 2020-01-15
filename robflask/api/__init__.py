@@ -27,7 +27,7 @@ def create_app(test_config=None):
     # the Flask application from environment variables.
     app = Flask(__name__, instance_relative_config=True)
     if not test_config is None:
-         app.config.update(test_config)    
+         app.config.update(test_config)
     app.config['MAX_CONTENT_LENGTH'] = config.MAX_CONTENT_LENGTH()
     # Enable CORS
     CORS(app)
