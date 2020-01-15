@@ -143,5 +143,6 @@ def get_benchmark_resource(benchmark_id, result_id, resource_id):
     return send_file(
         fh.filepath,
         as_attachment=True,
-        attachment_filename=fh.file_name
+        attachment_filename=fh.file_name,
+        last_modified=fh.last_modified
     )
