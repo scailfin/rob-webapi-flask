@@ -230,5 +230,6 @@ def download_resource_file(run_id, resource_id):
     return send_file(
         fh.filepath,
         as_attachment=True,
-        attachment_filename=fh.file_name
+        attachment_filename=fh.file_name,
+        mimetype=fh.mimetype
     )
