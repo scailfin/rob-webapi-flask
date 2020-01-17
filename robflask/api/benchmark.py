@@ -115,6 +115,37 @@ def get_leaderboard(benchmark_id):
     return make_response(jsonify(r), 200)
 
 
+@bp.route('/benchmarks/<string:benchmark_id>/resources/<string:result_id>', methods=['GET'])
+def download_benchmark_resource_archive(benchmark_id, result_id):
+    """Download a compressed tar archive containing all current resource files
+    for a benchmark that were created during post-processing.
+
+    Parameters
+    ----------
+    benchmark_id: string
+        Unique benchmark identifier
+    result_id: string
+        Unique identifier of the post-processing result set
+
+    Returns
+    -------
+    flask.response_class
+
+    Raises
+    ------
+    robflask.error.UnknownObjectError
+    """
+    with service() as api:
+        bsrv = api.benchmarks()
+        ioBuffer = bsrv.get_benchmark_resources(benchmark_id, result_id)
+    return send_file(
+        ioBuffer,
+        as_attachment=True,
+        attachment_filename='resources.tar.gz',
+        mimetype='application/gzip'
+    )
+
+
 @bp.route('/benchmarks/<string:benchmark_id>/resources/<string:result_id>/<string:resource_id>', methods=['GET'])
 def get_benchmark_resource(benchmark_id, result_id, resource_id):
     """Download the current resource file for a benchmark resource that was
