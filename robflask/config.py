@@ -20,7 +20,7 @@ import os
 from robcore.config.api import API_BASEDIR
 from robcore.config.engine import ROB_ENGINE
 
-import robcore.util as util
+import robcore.core.util as util
 
 
 """Environment variables that contain configuration parameters for the Web

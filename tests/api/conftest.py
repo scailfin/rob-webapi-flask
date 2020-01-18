@@ -20,8 +20,8 @@ from robflask.service import service
 
 import robcore.config.api as apiconf
 import robcore.config.db as dbconf
-import robcore.db.driver as dbdriver
-import robcore.db.sqlite as sqlite
+import robcore.core.db.driver as dbdriver
+import robcore.core.db.sqlite as sqlite
 import robflask.api as api
 import robflask.config as config
 

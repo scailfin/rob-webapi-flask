@@ -17,7 +17,7 @@ import os
 from contextlib import contextmanager
 
 from robcore.controller.engine import BenchmarkEngine
-from robcore.db.driver import DatabaseDriver
+from robcore.core.db.driver import DatabaseDriver
 from robcore.model.submission import SubmissionManager
 from robcore.model.template.repo.benchmark import BenchmarkRepository
 from robcore.model.template.repo.fs import TemplateFSRepository
@@ -30,7 +30,7 @@ from robcore.service.submission import SubmissionService
 from robcore.service.user import UserService
 from robcore.view.route import UrlFactory, HEADER_TOKEN
 
-import robcore.util as util
+import robcore.core.util as util
 import robflask.config as config
 import robflask.error as err
 
@@ -104,7 +104,7 @@ class API(object):
 
         Raises
         ------
-        robcore.error.UnauthenticatedAccessError
+        robcore.core.error.UnauthenticatedAccessError
         """
         return self.auth().authenticate(request.headers.get(HEADER_TOKEN))
 

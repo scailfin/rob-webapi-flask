@@ -50,7 +50,7 @@ def create_submission(benchmark_id):
     )
     name = obj[labels.NAME]
     members = obj[labels.MEMBERS] if labels.MEMBERS in obj else None
-    if not members is None and not isinstance(members, list):
+    if members is not None and not isinstance(members, list):
         raise err.InvalidRequest('members not a list')
     parameters = None
     if labels.PARAMETERS in obj:
@@ -97,14 +97,18 @@ def list_submission(benchmark_id):
     with service() as api:
         # Authenticate the user from the api_token in the header. This
         # will raise an exception if the user is currently not logged in.
-        api.authenticate(request)
-        r = api.submissions().list_submissions(benchmark_id=benchmark_id)
+        user = api.authenticate(request)
+        r = api.submissions().list_submissions(
+            benchmark_id=benchmark_id,
+            user=user
+        )
     return make_response(jsonify(r), 200)
 
 
 @bp.route('/submissions', methods=['GET'])
 def list_user_submission():
-    """Get a list of all submissions that the authenticated user is a member of.
+    """Get a list of all submissions that the authenticated user is a member
+    of.
 
     Returns
     -------

@@ -15,7 +15,7 @@ import click
 from robcore.config.install import DB
 from robflask.cli.benchmark import benchmarkcli
 
-import robcore.util as util
+import robcore.core.util as util
 import robflask.config as config
 import robflask.error as err
 

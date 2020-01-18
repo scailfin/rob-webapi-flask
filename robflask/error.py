@@ -10,7 +10,7 @@
 already defined and raised by API service components of ROB core).
 """
 
-from robcore.error import (
+from robcore.core.error import (
     ConstraintViolationError,
     MissingConfigurationError,
     UnauthenticatedAccessError,

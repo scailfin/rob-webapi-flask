@@ -23,7 +23,8 @@ bp = Blueprint('benchmarks', __name__, url_prefix=config.API_PATH())
 @bp.route('/benchmarks', methods=['GET'])
 def list_benchmarks():
     """Get listing of available benchmarks. The benchmark listing is available
-    to everyone, independent of whether they are currently authenticated or not.
+    to everyone, independent of whether they are currently authenticated or
+    not.
 
     Returns
     -------
@@ -60,7 +61,8 @@ def get_benchmark(benchmark_id):
 @bp.route('/benchmarks/<string:benchmark_id>/leaderboard', methods=['GET'])
 def get_leaderboard(benchmark_id):
     """Get leader board for a given benchmark. Benchmarks and their results are
-    available to everyone, independent of whether they are authenticated or not.
+    available to everyone, independent of whether they are authenticated or
+    not.
 
     Parameters
     ----------
@@ -85,7 +87,7 @@ def get_leaderboard(benchmark_id):
     # The orderBy argument can include a list of column names. Each column name
     # may be suffixed by the sort order.
     order_by = request.args.get('orderBy')
-    if not order_by is None:
+    if order_by is not None:
         sort_columns = list()
         for col in order_by.split(','):
             sort_desc = None
@@ -100,7 +102,7 @@ def get_leaderboard(benchmark_id):
     # The includeAll argument is a flag. If the argument is given without value
     # the default is True. Otherwise, we expect a string that is equal to true.
     include_all = request.args.get('includeAll')
-    if include_all != None:
+    if include_all is not None:
         if include_all == '':
             include_all = True
         else:
@@ -114,9 +116,8 @@ def get_leaderboard(benchmark_id):
         )
     return make_response(jsonify(r), 200)
 
-
-@bp.route('/benchmarks/<string:benchmark_id>/resources/<string:result_id>', methods=['GET'])
-def download_benchmark_resource_archive(benchmark_id, result_id):
+@bp.route('/benchmarks/<string:benchmark_id>/downloads/archive')
+def download_benchmark_archive(benchmark_id):
     """Download a compressed tar archive containing all current resource files
     for a benchmark that were created during post-processing.
 
@@ -137,7 +138,7 @@ def download_benchmark_resource_archive(benchmark_id, result_id):
     """
     with service() as api:
         bsrv = api.benchmarks()
-        ioBuffer = bsrv.get_benchmark_resources(benchmark_id, result_id)
+        ioBuffer = bsrv.get_benchmark_archive(benchmark_id=benchmark_id)
     return send_file(
         ioBuffer,
         as_attachment=True,
@@ -145,9 +146,8 @@ def download_benchmark_resource_archive(benchmark_id, result_id):
         mimetype='application/gzip'
     )
 
-
-@bp.route('/benchmarks/<string:benchmark_id>/resources/<string:result_id>/<string:resource_id>', methods=['GET'])
-def get_benchmark_resource(benchmark_id, result_id, resource_id):
+@bp.route('/benchmarks/<string:benchmark_id>/downloads/resources/<string:resource_id>')
+def get_benchmark_resource(benchmark_id, resource_id):
     """Download the current resource file for a benchmark resource that was
     created during post-processing.
 
@@ -170,7 +170,10 @@ def get_benchmark_resource(benchmark_id, result_id, resource_id):
     """
     with service() as api:
         bsrv = api.benchmarks()
-        fh = bsrv.get_benchmark_resource(benchmark_id, result_id, resource_id)
+        fh = bsrv.get_benchmark_resource(
+            benchmark_id=benchmark_id,
+            resource_id=resource_id
+        )
     return send_file(
         fh.filepath,
         as_attachment=True,

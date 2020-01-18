@@ -40,7 +40,12 @@ def test_runs(client, benchmark, url_prefix):
     with open(NAMES_FILE, 'rb') as f:
         data['file'] = (io.BytesIO(f.read()), 'names.txt')
     url = '{}/submissions/{}/files'.format(url_prefix, submission_id)
-    r = client.post(url, data=data, content_type='multipart/form-data', headers=headers)
+    r = client.post(
+        url,
+        data=data,
+        content_type='multipart/form-data',
+        headers=headers
+    )
     assert r.status_code == 201
     file_id = json.loads(r.data)[labels.ID]
     # Start a new run
@@ -59,7 +64,7 @@ def test_runs(client, benchmark, url_prefix):
     }
     r = client.post(url, json=body, headers=headers)
     assert r.status_code == 201
-    run_id =json.loads(r.data)[labels.ID]
+    run_id = json.loads(r.data)[labels.ID]
     # Get the run handle
     url = '{}/runs/{}'.format(url_prefix, run_id)
     r = client.get(url, headers={service.HEADER_TOKEN: token_2})
@@ -73,7 +78,11 @@ def test_runs(client, benchmark, url_prefix):
     assert 'results/greetings.txt' in resources
     assert 'results/analytics.json' in resources
     res_id = resources['results/greetings.txt'][labels.ID]
-    res_url = '{}/runs/{}/resources/{}'.format(url_prefix, run_id, res_id)
+    res_url = '{}/runs/{}/downloads/resources/{}'.format(
+        url_prefix,
+        run_id,
+        res_id
+    )
     r = client.get(res_url, headers=headers)
     assert r.status_code == 200
     data = str(r.data)
@@ -83,7 +92,11 @@ def test_runs(client, benchmark, url_prefix):
     r = client.get(res_url, headers={service.HEADER_TOKEN: token_2})
     assert r.status_code == 403
     # Unknown resource
-    res_url = '{}/runs/{}/resources/{}'.format(url_prefix, run_id, 'unknown')
+    res_url = '{}/runs/{}/downloads/resources/{}'.format(
+        url_prefix,
+        run_id,
+        'unknown'
+    )
     r = client.get(res_url, headers=headers)
     assert r.status_code == 404
     # Delete the run

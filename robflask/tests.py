@@ -10,7 +10,7 @@
 
 import json
 
-import robcore.util as util
+import robcore.core.util as util
 import robcore.view.labels as labels
 
 
