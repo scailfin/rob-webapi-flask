@@ -6,7 +6,7 @@
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
 
-"""Test app routes that start and query runs."""
+""""Unit tests that start, query and delete runs via the Web API."""
 
 import io
 import json
