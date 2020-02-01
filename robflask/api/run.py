@@ -10,7 +10,7 @@
 
 from flask import Blueprint, jsonify, make_response, request, send_file
 
-
+from flowserv.core.error import UnknownParameterError
 from robflask.api.util import jsonbody, ACCESS_TOKEN
 from robflask.service import service
 
@@ -53,7 +53,7 @@ def list_runs(submission_id):
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         r = api.runs().list_runs(
-            submission_id=submission_id,
+            group_id=submission_id,
             user_id=api.authenticate(token).identifier
         )
     return make_response(jsonify(r), 200)
@@ -93,11 +93,11 @@ def start_run(submission_id):
         # will fail if no token is given or if the user is not logged in.
         try:
             r = api.runs().start_run(
-                submission_id=submission_id,
+                group_id=submission_id,
                 arguments=args,
                 user_id=api.authenticate(token).identifier
             )
-        except err.UnknownParameterError as ex:
+        except UnknownParameterError as ex:
             # Convert unknown parameter errors into invalid request errors
             # to avoid sending a 404 response
             raise err.InvalidRequest(str(ex))
@@ -285,8 +285,8 @@ def download_result_file(run_id, resource_id):
             user_id=api.authenticate(token).identifier
         )
     return send_file(
-        fh.filepath,
+        fh.filename,
         as_attachment=True,
-        attachment_filename=fh.file_name,
+        attachment_filename=fh.name,
         mimetype=fh.mimetype
     )

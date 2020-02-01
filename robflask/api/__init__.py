@@ -159,6 +159,9 @@ def create_app(test_config=None):
     # Submission Service
     import robflask.api.submission as submissions
     app.register_blueprint(submissions.bp)
+    # Submission File Upload Service
+    import robflask.api.files as files
+    app.register_blueprint(files.bp)
     # User Service
     import robflask.api.user as users
     app.register_blueprint(users.bp)

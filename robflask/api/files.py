@@ -50,7 +50,7 @@ def list_files(submission_id):
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         r = api.uploads().list_files(
-            submission_id=submission_id,
+            group_id=submission_id,
             user_id=api.authenticate(token).identifier
         )
     return make_response(jsonify(r), 200)
@@ -89,12 +89,12 @@ def upload_file(submission_id):
         # Save uploaded file to temp directory
         filename = secure_filename(file.filename)
         with service() as api:
-            # Authentication of the user from the expected api_token in the header
-            # will fail if no token is given or if the user is not logged in.
+            # Authentication of the user from the expected api_token in the
+            # header will fail if the user is not logged in.
             r = api.uploads().upload_file(
-                submission_id=submission_id,
+                group_id=submission_id,
                 file=file,
-                file_name=filename,
+                name=filename,
                 user_id=api.authenticate(token).identifier
             )
         return make_response(jsonify(r), 201)
@@ -132,14 +132,14 @@ def download_file(submission_id, file_id):
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         fh, _ = api.uploads().get_file(
-            submission_id=submission_id,
+            group_id=submission_id,
             file_id=file_id,
             user_id=api.authenticate(token).identifier
         )
     return send_file(
-        fh.filepath,
+        fh.filename,
         as_attachment=True,
-        attachment_filename=fh.file_name,
+        attachment_filename=fh.name,
         mimetype=fh.mimetype
     )
 
@@ -174,7 +174,7 @@ def delete_file(submission_id, file_id):
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         api.uploads().delete_file(
-            submission_id=submission_id,
+            group_id=submission_id,
             file_id=file_id,
             user_id=api.authenticate(token).identifier
         )

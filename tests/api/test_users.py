@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -10,11 +10,12 @@
 
 import json
 
+from robflask.tests.user import USER_TOKEN
+
 import flowserv.config.api as config
 import flowserv.tests.serialize as serialize
 import robflask.api.user as user
 import robflask.api.util as util
-import robflask.service as service
 
 
 LABELS = {
@@ -22,7 +23,7 @@ LABELS = {
     'NAME': user.LABEL_NAME,
     'PASSWORD': user.LABEL_PASSWORD,
     'REQUEST_ID': 'requestId',
-    'TOKEN': 'token',
+    'TOKEN': USER_TOKEN,
     'USERS': 'users',
     'VERIFY': user.LABEL_VERIFY_USER
 }

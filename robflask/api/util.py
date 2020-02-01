@@ -14,7 +14,7 @@ from flowserv.core.util import validate_doc
 import robflask.error as err
 
 
-"""Name of the header eleemnt that contains the access token."""
+"""Name of the header element that contains the access token."""
 HEADER_TOKEN = 'api_key'
 
 

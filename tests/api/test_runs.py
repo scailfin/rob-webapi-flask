@@ -1,103 +1,113 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
 
 """"Unit tests that start, query and delete runs via the Web API."""
 
-import io
 import json
 import os
+import time
+
+from robflask.tests.submission import create_submission, upload_file
+
+import flowserv.config.api as config
+import flowserv.model.workflow.state as st
 
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 NAMES_FILE = os.path.join(DIR, '../.files/data/names.txt')
 
 
-def test_runs(client, benchmark, url_prefix):
+def test_runs(client):
     """Unit tests that start, query and delete runs."""
-    # Create common request header that contains the API key
-    user_1, token_1 = create_user(client, url_prefix)
-    headers = {service.HEADER_TOKEN: token_1}
-    _, token_2 = create_user(client, url_prefix)
-    # Create a new submission.
-    benchmark_id = benchmark.identifier
-    url = '{}/benchmarks/{}/submissions'.format(url_prefix, benchmark_id)
-    r = client.post(url, json={labels.NAME: 'Submission'}, headers=headers)
-    assert r.status_code == 201
-    submission_id = json.loads(r.data)[labels.ID]
+    # Create user and submission.
+    s_id, headers_1, headers_2 = create_submission(client)
     # Upload a new file
-    data = dict()
-    with open(NAMES_FILE, 'rb') as f:
-        data['file'] = (io.BytesIO(f.read()), 'names.txt')
-    url = '{}/submissions/{}/files'.format(url_prefix, submission_id)
-    r = client.post(
-        url,
-        data=data,
-        content_type='multipart/form-data',
-        headers=headers
-    )
-    assert r.status_code == 201
-    file_id = json.loads(r.data)[labels.ID]
-    # Start a new run
-    url = '{}/submissions/{}/runs'.format(url_prefix, submission_id)
+    file_id = upload_file(client, s_id, headers_1, NAMES_FILE)
+    # -- Start run ------------------------------------------------------------
+    url = '{}/submissions/{}/runs'.format(config.API_PATH(), s_id)
     body = {
-        labels.ARGUMENTS: [
-            {
-                labels.ID: 'names',
-                labels.VALUE: file_id
-            },
-            {
-                labels.ID: 'greeting',
-                labels.VALUE: 'Hi'
-            }
+        'arguments': [
+            {'id': 'names', 'value': file_id},
+            {'id': 'greeting', 'value': 'Hi'}
         ]
     }
-    r = client.post(url, json=body, headers=headers)
+    r = client.post(url, json=body, headers=headers_1)
     assert r.status_code == 201
-    run_id = json.loads(r.data)[labels.ID]
-    # Get the run handle
-    url = '{}/runs/{}'.format(url_prefix, run_id)
-    r = client.get(url, headers={service.HEADER_TOKEN: token_2})
-    assert r.status_code == 403
-    r = client.get(url, headers=headers)
+    run_id = json.loads(r.data)['id']
+    # -- Monitor run state ----------------------------------------------------
+    url = '{}/runs/{}'.format(config.API_PATH(), run_id)
+    r = client.get(url, headers=headers_1)
     assert r.status_code == 200
     obj = json.loads(r.data)
-    assert obj[labels.STATE] == state.STATE_SUCCESS
-    resources = {r[labels.NAME]: r for r in obj[labels.RESOURCES]}
+    while obj['state'] == st.STATE_RUNNING:
+        time.sleep(1)
+        r = client.get(url, headers=headers_1)
+        assert r.status_code == 200
+        obj = json.loads(r.data)
+    assert obj['state'] == st.STATE_SUCCESS
+    # -- Run resources --------------------------------------------------------
+    resources = {r['name']: r for r in obj['resources']}
     assert len(resources) == 2
     assert 'results/greetings.txt' in resources
     assert 'results/analytics.json' in resources
-    res_id = resources['results/greetings.txt'][labels.ID]
+    res_id = resources['results/greetings.txt']['id']
     res_url = '{}/runs/{}/downloads/resources/{}'.format(
-        url_prefix,
+        config.API_PATH(),
         run_id,
         res_id
     )
-    r = client.get(res_url, headers=headers)
+    r = client.get(res_url, headers=headers_1)
     assert r.status_code == 200
     data = str(r.data)
     assert 'Hi Alice' in data
     assert 'Hi Bob' in data
-    # Forbidden access to a resource
-    r = client.get(res_url, headers={service.HEADER_TOKEN: token_2})
+    # Run archive
+    url = '{}/runs/{}/downloads/archive'.format(config.API_PATH(), run_id)
+    r = client.get(url, headers=headers_1)
+    assert r.status_code == 200
+    # -- Cancel run -----------------------------------------------------------
+    url = '{}/submissions/{}/runs'.format(config.API_PATH(), s_id)
+    r = client.post(url, json=body, headers=headers_1)
+    assert r.status_code == 201
+    run_id = json.loads(r.data)['id']
+    url = '{}/runs/{}'.format(config.API_PATH(), run_id)
+    r = client.get(url, headers=headers_1)
+    obj = json.loads(r.data)
+    assert obj['state'] == st.STATE_RUNNING
+    r = client.put(url, json={'reason': 'no need'}, headers=headers_1)
+    r = client.get(url, headers=headers_1)
+    obj = json.loads(r.data)
+    assert obj['state'] == st.STATE_CANCELED
+    assert obj['messages'][0] == 'no need'
+    # -- List runs ------------------------------------------------------------
+    url = '{}/submissions/{}/runs'.format(config.API_PATH(), s_id)
+    r = client.get(url, headers=headers_1)
+    assert r.status_code == 200
+    obj = json.loads(r.data)
+    assert len(obj['runs']) == 2
+    # Forbidden access to run or resource
+    r = client.get(url, headers=headers_2)
+    assert r.status_code == 403
+    r = client.get(res_url, headers=headers_2)
     assert r.status_code == 403
     # Unknown resource
     res_url = '{}/runs/{}/downloads/resources/{}'.format(
-        url_prefix,
+        config.API_PATH(),
         run_id,
         'unknown'
     )
-    r = client.get(res_url, headers=headers)
+    r = client.get(res_url, headers=headers_1)
     assert r.status_code == 404
     # Delete the run
-    url = '{}/runs/{}'.format(url_prefix, run_id)
-    r = client.delete(url, headers={service.HEADER_TOKEN: token_2})
+    url = '{}/runs/{}'.format(config.API_PATH(), run_id)
+    r = client.delete(url, headers=headers_2)
     assert r.status_code == 403
-    r = client.delete(url, headers=headers)
+    r = client.delete(url, headers=headers_1)
     assert r.status_code == 204
-    r = client.get(url, headers=headers)
+    r = client.get(url, headers=headers_1)
     assert r.status_code == 404

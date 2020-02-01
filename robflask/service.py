@@ -22,7 +22,16 @@ from flowserv.service.api import API
 from flowserv.view.factory import DefaultView
 
 
-LABELS = dict()
+LABELS = dict({
+    'GROUPS': {
+        'GROUP_LIST': 'submissions',
+        'WORKFLOW_ID': 'benchmark'
+    },
+    'WORKFLOWS': {
+        'WORKFLOW_GROUP': 'submission',
+        'WORKFLOW_LIST': 'benchmarks'
+    }
+})
 
 
 class WebAPI(API):

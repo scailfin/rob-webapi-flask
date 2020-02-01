@@ -10,6 +10,8 @@
 
 from flask import Blueprint, jsonify, make_response, request
 
+from flowserv.core.error import UnknownUserError
+
 from robflask.api.util import jsonbody, ACCESS_TOKEN
 from robflask.service import service
 
@@ -77,7 +79,7 @@ def create_submission(benchmark_id):
                 user_id=api.authenticate(token).identifier,
                 members=members
             )
-        except err.UnknownUserError as ex:
+        except UnknownUserError as ex:
             # Change error type from unknown object to invalid request if a
             # user in the member list is unknown
             raise err.InvalidRequest(str(ex))
