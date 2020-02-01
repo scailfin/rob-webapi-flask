@@ -10,9 +10,6 @@
 
 import json
 
-from robflask.tests import create_user
-
-import robcore.view.labels as labels
 import robflask.service as service
 
 

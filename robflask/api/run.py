@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -10,12 +10,17 @@
 
 from flask import Blueprint, jsonify, make_response, request, send_file
 
-from robflask.service import jsonbody, service
 
-import robcore.config.api as config
-import robcore.core.util as util
-import robcore.view.labels as labels
+from robflask.api.util import jsonbody, ACCESS_TOKEN
+from robflask.service import service
+
+import flowserv.config.api as config
+import flowserv.core.util as util
 import robflask.error as err
+
+
+"""Labels for request bodys in POST and PUT requests."""
+LABEL_ARGUMENTS = 'arguments'
 
 
 bp = Blueprint('runs', __name__, url_prefix=config.API_PATH())
@@ -37,16 +42,19 @@ def list_runs(submission_id):
 
     Raises
     ------
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnauthorizedAccessError
+    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthorizedAccessError
     robflask.error.UnknownObjectError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         r = api.runs().list_runs(
             submission_id=submission_id,
-            user=api.authenticate(request)
+            user_id=api.authenticate(token).identifier
         )
     return make_response(jsonify(r), 200)
 
@@ -69,14 +77,17 @@ def start_run(submission_id):
     Raises
     ------
     robflask.error.InvalidRequest
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnauthorizedAccessError
+    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthorizedAccessError
     robflask.error.UnknownObjectError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     # Verify that the request contains a valid Json object that contains a
     # optional list of workflow arguments.
-    obj = jsonbody(request, optional_labels=[labels.ARGUMENTS])
-    args = obj[labels.ARGUMENTS] if labels.ARGUMENTS in obj else dict()
+    obj = jsonbody(request, optional=[LABEL_ARGUMENTS])
+    args = obj[LABEL_ARGUMENTS] if LABEL_ARGUMENTS in obj else dict()
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -84,7 +95,7 @@ def start_run(submission_id):
             r = api.runs().start_run(
                 submission_id=submission_id,
                 arguments=args,
-                user=api.authenticate(request)
+                user_id=api.authenticate(token).identifier
             )
         except err.UnknownParameterError as ex:
             # Convert unknown parameter errors into invalid request errors
@@ -109,16 +120,19 @@ def get_run(run_id):
 
     Raises
     ------
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnauthorizedAccessError
+    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthorizedAccessError
     robflask.error.UnknownObjectError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         r = api.runs().get_run(
             run_id=run_id,
-            user=api.authenticate(request)
+            user_id=api.authenticate(token).identifier
         )
     return make_response(jsonify(r), 200)
 
@@ -139,16 +153,19 @@ def delete_run(run_id):
 
     Raises
     ------
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnauthorizedAccessError
+    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthorizedAccessError
     robflask.error.UnknownObjectError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         api.runs().delete_run(
             run_id=run_id,
-            user=api.authenticate(request)
+            user_id=api.authenticate(token).identifier
         )
     return make_response(jsonify(dict()), 204)
 
@@ -169,10 +186,13 @@ def cancel_run(run_id):
 
     Raises
     ------
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnauthorizedAccessError
+    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthorizedAccessError
     robflask.error.UnknownObjectError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     # If the body contains a Json object verify that the object has the
     # mandatory element 'reason'
     reason = None
@@ -180,9 +200,9 @@ def cancel_run(run_id):
         try:
             obj = util.validate_doc(
                 request.json,
-                mandatory_labels=[labels.REASON]
+                mandatory=['reason']
             )
-            reason = obj[labels.REASON]
+            reason = obj['reason']
         except ValueError as ex:
             raise err.InvalidRequest(str(ex))
     with service() as api:
@@ -190,7 +210,7 @@ def cancel_run(run_id):
         # will fail if no token is given or if the user is not logged in.
         r = api.runs().cancel_run(
             run_id=run_id,
-            user=api.authenticate(request),
+            user_id=api.authenticate(token).identifier,
             reason=reason
         )
     return make_response(jsonify(r), 200)
@@ -214,10 +234,13 @@ def download_result_archive(run_id):
     ------
     robflask.error.UnknownObjectError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     with service() as api:
         ioBuffer = api.runs().get_result_archive(
             run_id=run_id,
-            user=api.authenticate(request)
+            user_id=api.authenticate(token).identifier
         )
     return send_file(
         ioBuffer,
@@ -246,17 +269,20 @@ def download_result_file(run_id, resource_id):
 
     Raises
     ------
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnauthorizedAccessError
+    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthorizedAccessError
     robflask.error.UnknownObjectError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         fh = api.runs().get_result_file(
             run_id=run_id,
             resource_id=resource_id,
-            user=api.authenticate(request)
+            user_id=api.authenticate(token).identifier
         )
     return send_file(
         fh.filepath,

@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -10,10 +10,18 @@
 
 from flask import Blueprint, jsonify, make_response, request
 
-from robflask.service import jsonbody, service
+from robflask.api.util import jsonbody, ACCESS_TOKEN
+from robflask.service import service
 
-import robcore.config.api as config
-import robcore.view.labels as labels
+import flowserv.config.api as config
+
+
+"""Labels for request bodys in POST and PUT requests."""
+LABEL_ID = 'id'
+LABEL_NAME = 'username'
+LABEL_PASSWORD = 'password'
+LABEL_REQUEST_ID = 'requestId'
+LABEL_VERIFY_USER = 'verify'
 
 
 bp = Blueprint('users', __name__, url_prefix=config.API_PATH())
@@ -30,14 +38,16 @@ def list_users():
 
     Raises
     ------
-    robflask.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthenticatedAccessError
     """
-    query = request.args.get('query')
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     with service() as api:
         # Authenticate the user from the api_token in the header. This
         # will raise an exception if the user is currently not logged in.
-        api.authenticate(request)
-        r = api.users().list_users(query=query)
+        api.authenticate(token)
+        r = api.users().list_users(query=request.args.get('query'))
     return make_response(jsonify(r), 200)
 
 
@@ -55,8 +65,8 @@ def activate_user():
     """
     # Verify that the request contains a valid Json object and get the user
     # identifier
-    obj = jsonbody(request, mandatory_labels=[labels.ID])
-    user_id = obj[labels.ID]
+    obj = jsonbody(request, mandatory=[LABEL_ID])
+    user_id = obj[LABEL_ID]
     # Activate user in the database and return the serialized user handle
     with service() as api:
         r = api.users().activate_user(user_id=user_id)
@@ -65,8 +75,8 @@ def activate_user():
 
 @bp.route('/users/login', methods=['POST'])
 def login_user():
-    """Authenticate a user based on the given credentials. Returns the api_key
-    that the user will use in subsequent requests.
+    """Authenticate a user based on the given credentials. Returns the access
+    token that the user will use in subsequent requests.
 
     Returns
     -------
@@ -77,10 +87,10 @@ def login_user():
     robflask.error.InvalidRequest
     """
     # Verify that the request contains a valid Json object
-    obj = jsonbody(request, mandatory_labels=[labels.USERNAME, labels.PASSWORD])
+    obj = jsonbody(request, mandatory=[LABEL_NAME, LABEL_PASSWORD])
     # Get the name and password for the new user
-    user = obj[labels.USERNAME]
-    passwd = obj[labels.PASSWORD]
+    user = obj[LABEL_NAME]
+    passwd = obj[LABEL_PASSWORD]
     # Register user in the database and return the serialized user handle
     with service() as api:
         r = api.users().login_user(username=user, password=passwd)
@@ -89,8 +99,8 @@ def login_user():
 
 @bp.route('/users/logout', methods=['POST'])
 def logout_user():
-    """Logout user. Expects an api_key for the authenticated user that is being
-    logged out.
+    """Logout user. Expects an access token for the authenticated user that is
+    being logged out.
 
     Returns
     -------
@@ -98,12 +108,15 @@ def logout_user():
 
     Raises
     ------
-    robflask.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthenticatedAccessError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     with service() as api:
         # Logout user. Authentication will fail and raise an error if the
         # user is currently not logged in.
-        r = api.users().logout_user(user=api.authenticate(request))
+        r = api.users().logout_user(user=api.authenticate(token))
     return make_response(jsonify(r), 200)
 
 
@@ -126,15 +139,15 @@ def register_user():
     # Verify that the request contains a valid Json object
     obj = jsonbody(
         request,
-        mandatory_labels=[labels.USERNAME, labels.PASSWORD],
-        optional_labels=[labels.VERIFY_USER]
+        mandatory=[LABEL_NAME, LABEL_PASSWORD],
+        optional=[LABEL_VERIFY_USER]
     )
     # Get the name and password for the new user and the value of the verify
     # flag. By default the flag is set to True
-    user = obj[labels.USERNAME]
-    passwd = obj[labels.PASSWORD]
-    if labels.VERIFY_USER in obj:
-        verify = bool(obj[labels.VERIFY_USER])
+    user = obj[LABEL_NAME]
+    passwd = obj[LABEL_PASSWORD]
+    if LABEL_VERIFY_USER in obj:
+        verify = bool(obj[LABEL_VERIFY_USER])
     else:
         verify = True
     # Register user in the database and return the serialized user handle
@@ -157,8 +170,8 @@ def request_password_reset():
     """
     # Verify that the request contains a valid Json object and get the name of
     # the user whose password is being rest.
-    obj = jsonbody(request, mandatory_labels=[labels.USERNAME])
-    user = obj[labels.USERNAME]
+    obj = jsonbody(request, mandatory=[LABEL_NAME])
+    user = obj[LABEL_NAME]
     # Register user in the database and return the serialized user handle
     with service() as api:
         r = api.users().request_password_reset(username=user)
@@ -180,11 +193,11 @@ def reset_password():
     robflask.error.ConstraintViolationError
     """
     # Verify that the request contains a valid Json object
-    mandatory_labels = [labels.REQUEST_ID, labels.PASSWORD]
-    obj = jsonbody(request, mandatory_labels=mandatory_labels)
+    mandatory_labels = [LABEL_REQUEST_ID, LABEL_PASSWORD]
+    obj = jsonbody(request, mandatory=mandatory_labels)
     # Get the unique request identifier and the new user password
-    req_id = obj[labels.REQUEST_ID]
-    passwd = obj[labels.PASSWORD]
+    req_id = obj[LABEL_REQUEST_ID]
+    passwd = obj[LABEL_PASSWORD]
     # Reset the password for the user that is identified by the request id
     with service() as api:
         r = api.users().reset_password(request_id=req_id, password=passwd)
@@ -202,10 +215,13 @@ def whoami_user():
 
     Raises
     ------
-    robflask.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthenticatedAccessError
     """
-    # Return serialization of handle for user that is associated with the
-    # api_key in the request header
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
+    # Return serialization of handle for user that is associated with access
+    # token
     with service() as api:
-        r = api.users().whoami_user(api.authenticate(request))
+        r = api.users().whoami_user(api.authenticate(token))
     return make_response(jsonify(r), 200)

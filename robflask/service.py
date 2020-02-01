@@ -1,58 +1,31 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
 
-"""Helper classes method to create instances of the API components. All
+"""Helper classes method to create instances of the Web API components. All
 components use the same underlying database connection. The connection object
 is under the control of of a context manager to ensure that the connection is
 closed properly after every API request has been handled.
-"""
 
-import os
+The WebAPI class extends the default API class of flowServ with serializers
+that are specific to ROB.
+"""
 
 from contextlib import contextmanager
 
-from robcore.controller.engine import BenchmarkEngine
-from robcore.core.db.driver import DatabaseDriver
-from robcore.model.submission import SubmissionManager
-from robcore.model.template.repo.benchmark import BenchmarkRepository
-from robcore.model.template.repo.fs import TemplateFSRepository
-from robcore.model.user.base import UserManager
-from robcore.model.user.auth import DefaultAuthPolicy
-from robcore.service.benchmark import BenchmarkService
-from robcore.service.run import RunService
-from robcore.service.server import Service
-from robcore.service.submission import SubmissionService
-from robcore.service.user import UserService
-from robcore.view.route import UrlFactory, HEADER_TOKEN
-
-import robcore.core.util as util
-import robflask.config as config
-import robflask.error as err
+from flowserv.core.db.driver import DatabaseDriver
+from flowserv.service.api import API
+from flowserv.view.factory import DefaultView
 
 
-"""Default directory names."""
-# Directory for storing templates for created benchmarks. This is the base
-# directory for the benchmark repository.
-BENCHMARKS_DIR = 'benchmarks'
-# Directory for benchmark resources that are created during post-processing
-RESOURCE_DIR = 'resources'
-# Directory for storing files that are uploaded by users to run submissions.
-UPLOAD_DIR = 'uploads'
+LABELS = dict()
 
 
-"""Define the workflow backend as a global variable. This is necessary for the
-multi-porcess backend to be able to maintain process state in between API
-requests.
-"""
-backend = config.ROB_ENGINE()
-
-
-class API(object):
+class WebAPI(API):
     """The API object implements a factory pattern for all API components. The
     individual components are instantiated on-demand to avoid any overhead for
     components that are not required to handle a user request.
@@ -67,46 +40,7 @@ class API(object):
         con: DB-API 2.0 database connection
             Connection to underlying database
         """
-        self.con = con
-        self.urls = UrlFactory()
-        # Keep a copy of objects that may be used by multiple components of the
-        # API. Use the respective get method for each of them to ensure that
-        # the object is instantiated before access.
-        self._auth = None
-        self._engine = None
-        self._repo = None
-        self._submissions = None
-        self._users = None
-
-    def auth(self):
-        """Get authentication handler. The object is create only once.
-
-        Returns
-        -------
-        robcore.model.user.auth.Auth
-        """
-        if self._auth is None:
-            self._auth = DefaultAuthPolicy(con=self.con)
-        return self._auth
-
-    def authenticate(self, request):
-        """Authenticate the user based on the api_key that is expected in the
-        header of an API request. Returns the handle for the authenticated user.
-
-        Parameters
-        ----------
-        request: flask.request
-            Flask request object
-
-        Returns
-        -------
-        robcore.model.user.base.UserHandle
-
-        Raises
-        ------
-        robcore.core.error.UnauthenticatedAccessError
-        """
-        return self.auth().authenticate(request.headers.get(HEADER_TOKEN))
+        super(WebAPI, self).__init__(con=con, view=DefaultView(labels=LABELS))
 
     def benchmarks(self):
         """Get instance of the benchmark service component.
@@ -115,67 +49,23 @@ class API(object):
         -------
         robcore.service.benchmark.BenchmarkService
         """
-        return BenchmarkService(
-            repo=self.benchmark_repository(),
-            urls=self.urls
-        )
+        return BenchmarkService(self.workflows())
 
-    def benchmark_repository(self):
-        """Get instance of the benchmark repository.
-
-        Returns
-        -------
-        robcore.model.template.repo.benchmark.BenchmarkRepository
-        """
-        if self._repo is None:
-            # Create an instance of the template and benchmark repository. The
-            # current configuration uses the file syste repository.
-            base_dir = config.API_BASEDIR()
-            benchmark_dir = os.path.join(base_dir, BENCHMARKS_DIR)
-            repo = TemplateFSRepository(base_dir=util.create_dir(benchmark_dir))
-            self._repo = BenchmarkRepository(
-                con=self.con,
-                template_repo=repo,
-                resource_base_dir=os.path.join(base_dir, RESOURCE_DIR)
-            )
-        return self._repo
-
-    def engine(self):
-        """Get the instance of the benchmark engine.
-
-        Returns
-        -------
-        robcore.model.controller.BenchmarkEngine
-        """
-        if self._engine is None:
-            self._engine = BenchmarkEngine(con=self.con, backend=backend)
-        return self._engine
-
-    def runs(self):
-        """Get instance of the run service component.
-
-        Returns
-        -------
-        robcore.service.run.RunService
-        """
-        return RunService(
-            engine=self.engine(),
-            submissions=self.submission_manager(),
-            repo=self.benchmark_repository(),
-            auth=self.auth(),
-            urls=self.urls
-        )
-
-    def service_descriptor(self, request):
+    def service_descriptor(self, access_token):
         """Get the serialization of the service descriptor. If the request
         contains an access token it is verified that the token is still
         active.
+
+        Parameters
+        ----------
+        access_token: string, optional
+            API access token to authenticate the user
+
+        Returns
+        -------
+        dict
         """
-        try:
-            username = self.authenticate(request).name
-        except err.UnauthenticatedAccessError:
-            username = None
-        return Service().service_descriptor(username=username)
+        return self.server(access_token).service_descriptor()
 
     def submissions(self):
         """Get instance of the submission service component.
@@ -184,83 +74,237 @@ class API(object):
         -------
         robcore.service.submission.SubmissionService
         """
-        return SubmissionService(
-            engine=self.engine(),
-            manager=self.submission_manager(),
-            auth=self.auth(),
-            repo=self.benchmark_repository(),
-            urls=self.urls
-        )
-
-    def submission_manager(self):
-        """Get instance of the submission manager.
-
-        Returns
-        -------
-        robcore.model.submission.SubmissionManager
-        """
-        if self._submissions is None:
-            self._submissions = SubmissionManager(
-                con=self.con,
-                directory=os.path.join(config.API_BASEDIR(), UPLOAD_DIR),
-                engine=self.engine()
-            )
-        return self._submissions
-
-    def users(self):
-        """Get instance of the user service component.
-
-        Returns
-        -------
-        robcore.service.user.UserService
-        """
-        if self._users is None:
-            self._users = UserService(
-                manager=UserManager(con=self.con),
-                urls=self.urls
-            )
-        return self._users
+        return SubmissionService(self.groups())
 
 
-# -- Helper methods for API request handling -----------------------------------
+# -- API components -----------------------------------------------------------
 
-def jsonbody(request, mandatory_labels=None, optional_labels=None):
-    """Get JSON object from the body of an API request. Validates the object
-    based on the given (optional) lists of mandatory and optional labels.
-
-    Returns the JSON object (dictionary). Raises an error if an invalid request
-    or body is given.
-
-    Parameters
-    ----------
-    request: flask.request
-        HTTP request
-    mandatory_labels: list(string)
-        List of mandatory labels for the dictionary serialization
-    optional_labels: list(string), optional
-        List of optional labels for the dictionary serialization
-
-    Returns
-    -------
-    dict
-
-    Raises
-    ------
-    robflask.error.InvalidRequest
+class BenchmarkService(object):
+    """API component that provides methods to access benchmarks and benchmark
+    leader boards.
     """
-    # Verify that the request contains a valid Json object
-    if not request.json:
-        raise err.InvalidRequest('no JSON object')
-    try:
-        obj = util.validate_doc(
-            request.json,
-            mandatory_labels=mandatory_labels,
-            optional_labels=optional_labels
-        )
-    except ValueError as ex:
-        raise err.InvalidRequest(str(ex))
-    return obj
+    def __init__(self, workflows):
+        """Initialize the workflow service from the flowServ API.
 
+        Parameters
+        ----------
+        workflows: flowserv.service.workflow.WorkflowService
+             Workflow service from the flowServ API
+        """
+        self.workflows = workflows
+
+    def get_benchmark(self, benchmark_id):
+        """Get serialization of the handle for the given benchmark.
+
+        Parameters
+        ----------
+        benchmark_id: string
+            Unique benchmark identifier
+
+        Returns
+        -------
+        dict
+
+        Raises
+        ------
+        flowserv.core.error.UnknownBenchmarkError
+        """
+        return self.workflows.get_workflow(workflow_id=benchmark_id)
+
+    def get_leaderboard(self, benchmark_id, order_by=None, include_all=False):
+        """Get serialization of the leader board for the given benchmark.
+
+        Parameters
+        ----------
+        benchmark_id: string
+            Unique benchmark identifier
+        order_by: list(flowserv.model.template.schema.SortColumn), optional
+            Use the given attribute to sort run results. If not given the
+            schema default attribute is used
+        include_all: bool, optional
+            Include at most one entry per submission in the result if False
+
+        Returns
+        -------
+        dict
+
+        Raises
+        ------
+        flowserv.core.error.UnknownWorkflowError
+        """
+        return self.workflows.get_leaderboard(
+            workflow_id=benchmark_id,
+            order_by=order_by,
+            include_all=include_all
+        )
+
+    def list_benchmarks(self):
+        """Get serialized listing of all benchmarks in the repository.
+
+        Parameters
+        ----------
+        access_token: string, optional
+            User access token
+
+        Returns
+        -------
+        dict
+        """
+        return self.workflows.list_workflows()
+
+
+class SubmissionService(object):
+    """API component that provides methods to access benchmark submissions and
+    their runs.
+    """
+    def __init__(self, groups):
+        """Initialize the workflow group manager from the flowServ API.
+
+        Parameters
+        ----------
+        groups: flowserv.service.group.WorkflowGroupService
+            Workflow group manager from the flowServ API
+        """
+        self.groups = groups
+
+    def create_submission(
+        self, benchmark_id, name, user_id, parameters=None, members=None
+    ):
+        """Create a new submission for a given benchmark. Each submission for
+        the benchmark has a unique name, a submission owner, and a list of
+        additional submission members.
+
+        Parameters
+        ----------
+        benchmark_id: string
+            Unique benchmark identifier
+        name: string
+            Unique team name
+        user_id: string
+            Unique identifier for the submission owner
+        parameters: dict(string:flowserv.model.template.parameter.base.TemplateParameter), optional
+            Workflow template parameter declarations
+        members: list(string), optional
+            List of user identifier for submission members
+
+        Returns
+        -------
+        dict
+
+        Raises
+        ------
+        flowserv.core.error.ConstraintViolationError
+        flowserv.core.error.UnknownWorkflowError
+        """
+        return self.groups.create_group(
+            workflow_id=benchmark_id,
+            name=name,
+            user_id=user_id,
+            parameters=parameters,
+            members=members
+        )
+
+    def delete_submission(self, submission_id, user_id):
+        """Get a given submission and all associated runs and results. If the
+        user is not an administrator or a member of the submission an
+        unauthorized access error is raised.
+
+        Parameters
+        ----------
+        submission_id: string
+            Unique submission identifier
+        user_id: string
+            Unique identifier for the user that is deleting the submission
+
+        Raises
+        ------
+        flowserv.core.error.UnauthorizedAccessError
+        flowserv.core.error.UnknownWorkflowGroupError
+        """
+        # Raise an error if the user is not authorized to delete the submission
+        # or if the submission does not exist
+        self.groups.delete_group(group_id=submission_id, user_id=user_id)
+
+    def get_submission(self, submission_id):
+        """Get handle for submission with the given identifier.
+
+        Parameters
+        ----------
+        submission_id: string
+            Unique submission identifier
+
+        Returns
+        -------
+        dict
+
+        Raises
+        ------
+        flowserv.core.error.UnknownWorkflowGroupError
+        """
+        return self.groups.get_group(group_id=submission_id)
+
+    def list_submissions(self, benchmark_id=None, user_id=None):
+        """Get a listing of all submissions. If the user handle is given the
+        result contains only those submissions that the user is a member of.
+        If the benchmark identifier is given the result contains submissions
+        only for the given benchmark.
+
+        Parameters
+        ----------
+        benchmark_id: string, optional
+            Unique benchmark identifier
+        user_id: string
+            Unique identifier for the user that is requesting the submission
+            listing
+
+        Returns
+        -------
+        dict
+        """
+        return self.groups.list_groups(
+            workflow_id=benchmark_id,
+            user_id=user_id
+        )
+
+    def update_submission(
+        self, submission_id, user_id, name=None, members=None
+    ):
+        """Update the name for the team with the given identifier. The access
+        token is optional to allow a super user to change team names from the
+        command line interface without the need to be a team owner. A web
+        service implementation should always ensure that an access token is
+        given.
+
+        Parameters
+        ----------
+        submission_id: string
+            Unique submission identifier
+        user_id: string
+            Unique identifier for the user that is accessing the submission
+        name: string, optional
+            New submission name
+        members: list(string), optional
+            Modified list of team members
+
+        Returns
+        -------
+        dict
+
+        Raises
+        ------
+        flowserv.core.error.ConstraintViolationError
+        flowserv.core.error.UnauthorizedAccessError
+        flowserv.core.error.UnknownSubmissionError
+        """
+        return self.groups.update_group(
+            group_id=submission_id,
+            user_id=user_id,
+            name=name,
+            members=members
+        )
+
+
+# -- API constructor ----------------------------------------------------------
 
 @contextmanager
 def service():
@@ -274,5 +318,5 @@ def service():
     robflask.service.API
     """
     con = DatabaseDriver.get_connector().connect()
-    yield API(con)
+    yield WebAPI(con)
     con.close()

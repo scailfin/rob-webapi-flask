@@ -12,11 +12,6 @@ import io
 import json
 import os
 
-from robflask.tests import create_user
-
-import robcore.view.labels as labels
-import robflask.service as service
-
 DIR = os.path.dirname(os.path.realpath(__file__))
 SMALL_FILE = os.path.join(DIR, '../.files/data/names.txt')
 LARGE_FILE = os.path.join(DIR, '../.files/data/largefile.txt')

@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -17,7 +17,10 @@ from flask import Flask, jsonify, make_response
 from flask_cors import CORS
 from logging.handlers import RotatingFileHandler
 
-import robflask.error as err
+from flowserv.core.util import create_dir
+
+import flowserv.core.error as err
+import robflask.error as rob
 import robflask.config as config
 
 
@@ -27,7 +30,7 @@ def create_app(test_config=None):
     # the Flask application from environment variables.
     app = Flask(__name__, instance_relative_config=True)
     if test_config is not None:
-         app.config.update(test_config)
+        app.config.update(test_config)
     app.config['MAX_CONTENT_LENGTH'] = config.MAX_CONTENT_LENGTH()
     # Enable CORS
     CORS(app)
@@ -35,8 +38,9 @@ def create_app(test_config=None):
     # Initialize error logging
     # --------------------------------------------------------------------------
     # Use rotating file handler for server logs
+    logdir = create_dir(config.LOG_DIR())
     file_handler = RotatingFileHandler(
-        os.path.join(config.LOG_DIR(), 'webapi.log'),
+        os.path.join(logdir, 'webapi.log'),
         maxBytes=1024 * 1024 * 100,
         backupCount=20
     )
@@ -65,7 +69,7 @@ def create_app(test_config=None):
         """
         return make_response(jsonify({'message': str(error)}), 400)
 
-    @app.errorhandler(err.InvalidRequest)
+    @app.errorhandler(rob.InvalidRequest)
     def invalid_request_body(error):
         """JSON response handler for requests that do not contain a valid
         request body.
@@ -97,7 +101,7 @@ def create_app(test_config=None):
         return make_response(jsonify({'message': str(error)}), 403)
 
     @app.errorhandler(err.UnauthorizedAccessError)
-    def unauthenticated_access(error):
+    def unauthorized_access(error):
         """JSON response handler for unauthorized requests.
 
         Parameters
@@ -144,8 +148,8 @@ def create_app(test_config=None):
     # Import blueprints for API components
     # --------------------------------------------------------------------------
     # Service Descriptor
-    import robflask.api.descriptor as descriptor
-    app.register_blueprint(descriptor.bp)
+    import robflask.api.server as server
+    app.register_blueprint(server.bp)
     # Benchmark Service
     import robflask.api.benchmark as benchmarks
     app.register_blueprint(benchmarks.bp)

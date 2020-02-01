@@ -16,10 +16,9 @@ from setuptools import setup, find_packages
 
 install_requires=[
     'future',
-    'rob-core>=0.1.0',
+    'flowserv>=0.1.0',
     'flask',
-    'flask_cors',
-    'Click'
+    'flask_cors'
 ]
 
 

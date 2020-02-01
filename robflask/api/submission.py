@@ -1,22 +1,27 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
 
-"""Blueprint for submission resources and file uploads."""
+"""Blueprint for submission resources."""
 
-from flask import Blueprint, jsonify, make_response, request, send_file
-from werkzeug.utils import secure_filename
+from flask import Blueprint, jsonify, make_response, request
 
-from robflask.service import jsonbody, service
+from robflask.api.util import jsonbody, ACCESS_TOKEN
+from robflask.service import service
 
-import robcore.config.api as config
-import robcore.model.template.parameter.util as pd
-import robcore.view.labels as labels
+import flowserv.config.api as config
+import flowserv.model.parameter.base as pb
 import robflask.error as err
+
+
+"""Labels for request bodys in POST and PUT requests."""
+LABEL_MEMBERS = 'members'
+LABEL_NAME = 'name'
+LABEL_PARAMETERS = 'parameters'
 
 
 bp = Blueprint('submissions', __name__, url_prefix=config.API_PATH())
@@ -39,23 +44,26 @@ def create_submission(benchmark_id):
     Raises
     ------
     robflask.error.InvalidRequest
-    robflask.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthenticatedAccessError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     # Verify that the request contains a valid Json object that contains the
     # submission name and an optional list of member identifier.
     obj = jsonbody(
         request,
-        mandatory_labels=[labels.NAME],
-        optional_labels=[labels.MEMBERS, labels.PARAMETERS]
+        mandatory=[LABEL_NAME],
+        optional=[LABEL_MEMBERS, LABEL_PARAMETERS]
     )
-    name = obj[labels.NAME]
-    members = obj[labels.MEMBERS] if labels.MEMBERS in obj else None
+    name = obj[LABEL_NAME]
+    members = obj[LABEL_MEMBERS] if LABEL_MEMBERS in obj else None
     if members is not None and not isinstance(members, list):
         raise err.InvalidRequest('members not a list')
     parameters = None
-    if labels.PARAMETERS in obj:
-        parameters = pd.create_parameter_index(
-                obj[labels.PARAMETERS],
+    if LABEL_PARAMETERS in obj:
+        parameters = pb.create_parameter_index(
+                obj[LABEL_PARAMETERS],
                 validate=True
             )
     with service() as api:
@@ -66,7 +74,7 @@ def create_submission(benchmark_id):
                 benchmark_id=benchmark_id,
                 name=name,
                 parameters=parameters,
-                user=api.authenticate(request),
+                user_id=api.authenticate(token).identifier,
                 members=members
             )
         except err.UnknownUserError as ex:
@@ -92,15 +100,17 @@ def list_submission(benchmark_id):
 
     Raises
     ------
-    robflask.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthenticatedAccessError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     with service() as api:
         # Authenticate the user from the api_token in the header. This
         # will raise an exception if the user is currently not logged in.
-        user = api.authenticate(request)
         r = api.submissions().list_submissions(
             benchmark_id=benchmark_id,
-            user=user
+            user_id=api.authenticate(token).identifier
         )
     return make_response(jsonify(r), 200)
 
@@ -116,12 +126,17 @@ def list_user_submission():
 
     Raises
     ------
-    robflask.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthenticatedAccessError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
-        r = api.submissions().list_submissions(user=api.authenticate(request))
+        r = api.submissions().list_submissions(
+            user_id=api.authenticate(token).identifier
+        )
     return make_response(jsonify(r), 200)
 
 
@@ -141,16 +156,19 @@ def delete_submission(submission_id):
 
     Raises
     ------
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnauthorizedAccessError
-    robflask.error.UnknownObjectError
+    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthorizedAccessError
+    flowserv.core.error.UnknownWorkflowGroupError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         api.submissions().delete_submission(
             submission_id=submission_id,
-            user=api.authenticate(request)
+            user_id=api.authenticate(token).identifier
         )
     return make_response(jsonify(dict()), 204)
 
@@ -171,13 +189,16 @@ def get_submission(submission_id):
 
     Raises
     ------
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnknownObjectError
+    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.core.error.UnknownWorkflowGroupError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     with service() as api:
         # Authenticate the user from the api_token in the header. This
         # will raise an exception if the user is currently not logged in.
-        api.authenticate(request)
+        api.authenticate(token)
         r = api.submissions().get_submission(submission_id=submission_id)
     return make_response(jsonify(r), 200)
 
@@ -200,172 +221,30 @@ def update_submission(submission_id):
     Raises
     ------
     robflask.error.InvalidRequest
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnauthorizedAccessError
-    robflask.error.UnknownObjectError
+    flowserv.core.error.ConstraintViolationError
+    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthorizedAccessError
+    flowserv.core.error.UnknownWorkflowGroupError
     """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
     # Verify that the request contains a valid Json object that contains an
     # optional submission name and/or a list of member identifier.
     obj = jsonbody(
         request,
-        mandatory_labels=[],
-        optional_labels=[labels.NAME, labels.MEMBERS]
+        mandatory=[],
+        optional=[LABEL_NAME, LABEL_MEMBERS]
     )
-    name = obj[labels.NAME] if labels.NAME in obj else None
-    members = obj[labels.MEMBERS] if labels.MEMBERS in obj else None
+    name = obj[LABEL_NAME] if LABEL_NAME in obj else None
+    members = obj[LABEL_MEMBERS] if LABEL_MEMBERS in obj else None
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         r = api.submissions().update_submission(
             submission_id=submission_id,
-            user=api.authenticate(request),
+            user_id=api.authenticate(token).identifier,
             name=name,
             members=members
         )
     return make_response(jsonify(r), 200)
-
-
-@bp.route('/submissions/<string:submission_id>/files', methods=['GET'])
-def list_files(submission_id):
-    """List all uploaded files fora given submission. The user has to be a
-    member of the submission in order to be allowed to list files.
-
-    Parameters
-    ----------
-    submission_id: string
-        Unique submission identifier
-
-    Returns
-    -------
-    flask.response_class
-
-    Raises
-    ------
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnauthorizedAccessError
-    robflask.error.UnknownObjectError
-    """
-    with service() as api:
-        # Authentication of the user from the expected api_token in the header
-        # will fail if no token is given or if the user is not logged in.
-        r = api.submissions().list_files(
-            submission_id=submission_id,
-            user=api.authenticate(request)
-        )
-    return make_response(jsonify(r), 200)
-
-
-@bp.route('/submissions/<string:submission_id>/files', methods=['POST'])
-def upload_file(submission_id):
-    """Upload a new file as part of a given submission. The user has to be a
-    member of the submission in order to be allowed to upload files.
-
-    Parameters
-    ----------
-    submission_id: string
-        Unique submission identifier
-
-    Returns
-    -------
-    flask.response_class
-
-    Raises
-    ------
-    robflask.error.InvalidRequest
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnauthorizedAccessError
-    robflask.error.UnknownObjectError
-    """
-    # Ensure that the upload request contains a file object
-    if request.files and 'file' in request.files:
-        file = request.files['file']
-        # A browser may submit a empty part without filename
-        if file.filename == '':
-            raise err.InvalidRequest('empty file name')
-        # Save uploaded file to temp directory
-        filename = secure_filename(file.filename)
-        with service() as api:
-            # Authentication of the user from the expected api_token in the header
-            # will fail if no token is given or if the user is not logged in.
-            r = api.submissions().upload_file(
-                submission_id=submission_id,
-                file=file,
-                file_name=filename,
-                user=api.authenticate(request)
-            )
-        return make_response(jsonify(r), 201)
-    else:
-        raise err.InvalidRequest('no file request')
-
-
-@bp.route('/submissions/<string:submission_id>/files/<string:file_id>', methods=['GET'])
-def download_file(submission_id, file_id):
-    """Download a given file that was perviously uploaded for a submission. The
-    user has to be a member of the submission in order to be allowed to access
-    files.
-
-    Parameters
-    ----------
-    submission_id: string
-        Unique submission identifier
-    file_id: string
-        Unique file identifier
-
-    Returns
-    -------
-    flask.response_class
-
-    Raises
-    ------
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnauthorizedAccessError
-    robflask.error.UnknownObjectError
-    """
-    with service() as api:
-        # Authentication of the user from the expected api_token in the header
-        # will fail if no token is given or if the user is not logged in.
-        fh, _ = api.submissions().get_file(
-            submission_id=submission_id,
-            file_id=file_id,
-            user=api.authenticate(request)
-        )
-    return send_file(
-        fh.filepath,
-        as_attachment=True,
-        attachment_filename=fh.file_name,
-        mimetype=fh.mimetype
-    )
-
-
-@bp.route('/submissions/<string:submission_id>/files/<string:file_id>', methods=['DELETE'])
-def delete_file(submission_id, file_id):
-    """Delete a given file that was perviously uploaded for a submission. The
-    user has to be a member of the submission in order to be allowed to delete
-    files.
-
-    Parameters
-    ----------
-    submission_id: string
-        Unique submission identifier
-    file_id: string
-        Unique file identifier
-
-    Returns
-    -------
-    flask.response_class
-
-    Raises
-    ------
-    robflask.error.UnauthenticatedAccessError
-    robflask.error.UnauthorizedAccessError
-    robflask.error.UnknownObjectError
-    """
-    with service() as api:
-        # Authentication of the user from the expected api_token in the header
-        # will fail if no token is given or if the user is not logged in.
-        api.submissions().delete_file(
-            submission_id=submission_id,
-            file_id=file_id,
-            user=api.authenticate(request)
-        )
-    return make_response(jsonify(dict()), 204)

@@ -12,12 +12,6 @@ import io
 import json
 import os
 
-from robflask.tests import create_user
-
-import robcore.model.workflow.state as state
-import robcore.view.labels as labels
-import robflask.service as service
-
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 NAMES_FILE = os.path.join(DIR, '../.files/data/names.txt')

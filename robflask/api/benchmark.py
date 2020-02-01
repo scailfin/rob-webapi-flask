@@ -1,20 +1,19 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
 
 """Blueprint for benchmark resources and benchmark leader boards."""
 
-from flask import Blueprint, jsonify, make_response, request, send_file
+from flask import Blueprint, jsonify, make_response, request
 
-from robcore.model.template.schema import SortColumn
-from robflask.service import jsonbody, service
+from flowserv.model.template.schema import SortColumn
+from robflask.service import service
 
-import robcore.config.api as config
-import robcore.view.labels as labels
+import flowserv.config.api as config
 
 
 bp = Blueprint('benchmarks', __name__, url_prefix=config.API_PATH())
@@ -51,7 +50,7 @@ def get_benchmark(benchmark_id):
 
     Raises
     ------
-    robflask.error.UnknownObjectError
+    flowserv.core.error.UnknownWorkflowError
     """
     with service() as api:
         r = api.benchmarks().get_benchmark(benchmark_id)
@@ -82,7 +81,7 @@ def get_leaderboard(benchmark_id):
 
     Raises
     ------
-    robflask.error.UnknownObjectError
+    flowserv.core.error.UnknownWorkflowError
     """
     # The orderBy argument can include a list of column names. Each column name
     # may be suffixed by the sort order.
@@ -115,69 +114,3 @@ def get_leaderboard(benchmark_id):
             include_all=include_all
         )
     return make_response(jsonify(r), 200)
-
-@bp.route('/benchmarks/<string:benchmark_id>/downloads/archive')
-def download_benchmark_archive(benchmark_id):
-    """Download a compressed tar archive containing all current resource files
-    for a benchmark that were created during post-processing.
-
-    Parameters
-    ----------
-    benchmark_id: string
-        Unique benchmark identifier
-    result_id: string
-        Unique identifier of the post-processing result set
-
-    Returns
-    -------
-    flask.response_class
-
-    Raises
-    ------
-    robflask.error.UnknownObjectError
-    """
-    with service() as api:
-        bsrv = api.benchmarks()
-        ioBuffer = bsrv.get_benchmark_archive(benchmark_id=benchmark_id)
-    return send_file(
-        ioBuffer,
-        as_attachment=True,
-        attachment_filename='resources.tar.gz',
-        mimetype='application/gzip'
-    )
-
-@bp.route('/benchmarks/<string:benchmark_id>/downloads/resources/<string:resource_id>')
-def get_benchmark_resource(benchmark_id, resource_id):
-    """Download the current resource file for a benchmark resource that was
-    created during post-processing.
-
-    Parameters
-    ----------
-    benchmark_id: string
-        Unique benchmark identifier
-    result_id: string
-        Unique identifier of the post-processing result set
-    resource_id: string
-        Unique resource identifier
-
-    Returns
-    -------
-    flask.response_class
-
-    Raises
-    ------
-    robflask.error.UnknownObjectError
-    """
-    with service() as api:
-        bsrv = api.benchmarks()
-        fh = bsrv.get_benchmark_resource(
-            benchmark_id=benchmark_id,
-            resource_id=resource_id
-        )
-    return send_file(
-        fh.filepath,
-        as_attachment=True,
-        attachment_filename=fh.file_name,
-        last_modified=fh.last_modified,
-        mimetype=fh.mimetype
-    )

@@ -1,29 +1,19 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
 
 """Errors that are raised by the web service (in addition to those that are
-already defined and raised by API service components of ROB core).
+already defined and raised by API service components of flowServ).
 """
-
-from robcore.core.error import (
-    ConstraintViolationError,
-    MissingConfigurationError,
-    UnauthenticatedAccessError,
-    UnauthorizedAccessError,
-    UnknownObjectError,
-    UnknownParameterError,
-    UnknownUserError
-)
 
 
 class InvalidRequest(Exception):
-    """Error that is raised when a user request does not contain a valid request
-    body.
+    """Error that is raised when a user request does not contain a valid
+    request body.
     """
     def __init__(self, message):
         """Initialize error message.

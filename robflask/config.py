@@ -1,7 +1,7 @@
 # This file is part of the Reproducible Open Benchmarks for Data Analysis
 # Platform (ROB).
 #
-# Copyright (C) 2019 NYU.
+# Copyright (C) [2019-2020] NYU.
 #
 # ROB is free software; you can redistribute it and/or modify it under the
 # terms of the MIT License; see LICENSE file for more details.
@@ -17,10 +17,7 @@ expected to remain constant throughout the lifespan of a running application.
 
 import os
 
-from robcore.config.api import API_BASEDIR
-from robcore.config.engine import ROB_ENGINE
-
-import robcore.core.util as util
+from flowserv.config.api import API_BASEDIR
 
 
 """Environment variables that contain configuration parameters for the Web
@@ -35,9 +32,9 @@ ROB_WEBAPI_CONTENTLENGTH = 'ROB_WEBAPI_CONTENTLENGTH'
 # -- Helper methods to access configutation parameters -------------------------
 
 def LOG_DIR():
-    """Get the logging directory for the Web API from the respective environment
-    variable 'ROB_WEBAPI_LOG'. If the variable is not set a sub-folder 'log' is
-    created in the API base directory.
+    """Get the logging directory for the Web API from the respective
+    environment variable 'ROB_WEBAPI_LOG'. If the variable is not set a
+    sub-folder 'log' in the API base directory use used as the default.
 
     Returns
     -------
@@ -47,14 +44,13 @@ def LOG_DIR():
     # If the variable is not set create a sub-folder in the API base directory
     if log_dir is None:
         log_dir = os.path.join(API_BASEDIR(), 'log')
-    # Create the log directory if it does not exist
-    return util.create_dir(os.path.abspath(log_dir))
+    return os.path.abspath(log_dir)
 
 
 def MAX_CONTENT_LENGTH():
     """Get the maximum size for uploaded files from the respective environment
-    variable 'ROB_WEBAPI_CONTENTLENGTH'. If the variable is not set the default
-    value that is equal to 16MB is used.
+    variable 'ROB_WEBAPI_CONTENTLENGTH'. If the variable is not set the
+    default value that is equal to 16MB is used.
 
     Returns
     -------
