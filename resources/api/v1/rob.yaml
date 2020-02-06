@@ -8,8 +8,16 @@ info:
   license:
     name: "MIT"
     url: "https://opensource.org/licenses/MIT"
+# -----------------------------------------------------------------------------
+# Base URL
+# -----------------------------------------------------------------------------
+schemes:
+- "http"
 host: "localhost:5000"
 basePath: "/rob/api/v1"
+# -----------------------------------------------------------------------------
+# Grouping of API Routes
+# -----------------------------------------------------------------------------
 tags:
 - name: "service"
   description: "Service description"
@@ -23,12 +31,10 @@ tags:
   description: "Uploaded files for benchmark submissions"
 - name: "user"
   description: "Authenticate and register users"
-schemes:
-- "http"
-paths:
 # -----------------------------------------------------------------------------
 # API Routes
 # -----------------------------------------------------------------------------
+paths:
 # -- Service ------------------------------------------------------------------
   /:
     get:

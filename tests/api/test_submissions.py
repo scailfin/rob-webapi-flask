@@ -54,6 +54,10 @@ def test_submission_life_cycle(client):
     # Creating a submission with the same name will return a BAD REQUEST
     r = client.post(url, json=body, headers=headers_1)
     assert r.status_code == 400
+    # Creating a submission with an unknown member will return a BAD REQUEST
+    err_body = {'name': 'Error submission', 'members': ['ABCD']}
+    r = client.post(url, json=err_body, headers=headers_1)
+    assert r.status_code == 400
     # -- Retrieve submission --------------------------------------------------
     url = ACCESS_SUBMISSION.format(config.API_PATH(), s_id)
     r = client.get(url, headers=headers_1)

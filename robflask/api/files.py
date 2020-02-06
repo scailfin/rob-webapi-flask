@@ -85,7 +85,7 @@ def upload_file(submission_id):
         file = request.files['file']
         # A browser may submit a empty part without filename
         if file.filename == '':
-            raise err.InvalidRequest('empty file name')
+            raise err.InvalidRequestError('empty file name')
         # Save uploaded file to temp directory
         filename = secure_filename(file.filename)
         with service() as api:
@@ -99,7 +99,7 @@ def upload_file(submission_id):
             )
         return make_response(jsonify(r), 201)
     else:
-        raise err.InvalidRequest('no file request')
+        raise err.InvalidRequestError('no file request')
 
 
 @bp.route('/submissions/<string:submission_id>/files/<string:file_id>', methods=['GET'])

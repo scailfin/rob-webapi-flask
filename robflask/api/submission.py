@@ -61,7 +61,7 @@ def create_submission(benchmark_id):
     name = obj[LABEL_NAME]
     members = obj[LABEL_MEMBERS] if LABEL_MEMBERS in obj else None
     if members is not None and not isinstance(members, list):
-        raise err.InvalidRequest('members not a list')
+        raise err.InvalidRequestError('members not a list')
     parameters = None
     if LABEL_PARAMETERS in obj:
         parameters = pb.create_parameter_index(
@@ -82,7 +82,7 @@ def create_submission(benchmark_id):
         except UnknownUserError as ex:
             # Change error type from unknown object to invalid request if a
             # user in the member list is unknown
-            raise err.InvalidRequest(str(ex))
+            raise err.InvalidRequestError(str(ex))
     return make_response(jsonify(r), 201)
 
 

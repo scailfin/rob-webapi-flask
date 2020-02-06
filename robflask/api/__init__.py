@@ -69,7 +69,7 @@ def create_app(test_config=None):
         """
         return make_response(jsonify({'message': str(error)}), 400)
 
-    @app.errorhandler(rob.InvalidRequest)
+    @app.errorhandler(rob.InvalidRequestError)
     def invalid_request_body(error):
         """JSON response handler for requests that do not contain a valid
         request body.

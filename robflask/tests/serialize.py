@@ -8,9 +8,10 @@
 
 """Helper methods to test object serialization."""
 
-from flowserv.tests.serialize import validate_run_handle
+from flowserv.tests.serialize import validate_parameter
 
 import flowserv.core.util as util
+import flowserv.model.workflow.state as st
 
 
 # -- Benchmarks ---------------------------------------------------------------
@@ -57,6 +58,111 @@ def validate_benchmark_listing(doc):
         )
 
 
+# -- Rankings -----------------------------------------------------------------
+
+def validate_ranking(doc):
+    """Validate serialization of a workflow evaluation ranking.
+
+    Parameters
+    ----------
+    doc: dict
+        Ranking serialization
+
+    Raises
+    ------
+    ValueError
+    """
+    util.validate_doc(
+        doc=doc,
+        mandatory=['schema', 'ranking'],
+        optional=['postproc']
+    )
+    # Schema columns
+    for col in doc['schema']:
+        util.validate_doc(doc=col, mandatory=['id', 'name', 'type'])
+    # Run results
+    for entry in doc['ranking']:
+        util.validate_doc(
+            doc=entry,
+            mandatory=['run', 'submission', 'results']
+        )
+        util.validate_doc(
+            doc=entry['run'],
+            mandatory=['id', 'createdAt', 'startedAt', 'finishedAt']
+        )
+        util.validate_doc(doc=entry['submission'], mandatory=['id', 'name'])
+        for result in entry['results']:
+            util.validate_doc(doc=result, mandatory=['id', 'value'])
+
+
+# -- Runs ---------------------------------------------------------------------
+
+def validate_run_handle(doc, state):
+    """Validate serialization of a run handle.
+
+    Parameters
+    ----------
+    doc: dict
+        Run handle serialization
+    state: string
+        Expected run state
+
+    Raises
+    ------
+    ValueError
+    """
+    labels = ['id', 'benchmarkId', 'state', 'createdAt', 'arguments']
+    if state == st.STATE_RUNNING:
+        labels.append('startedAt')
+    elif state in [st.STATE_ERROR, st.STATE_CANCELED]:
+        labels.append('startedAt')
+        labels.append('finishedAt')
+        labels.append('messages')
+    elif state == st.STATE_SUCCESS:
+        labels.append('startedAt')
+        labels.append('finishedAt')
+        labels.append('resources')
+    util.validate_doc(
+        doc=doc,
+        mandatory=labels,
+        optional=['parameters', 'submissionId']
+    )
+    if 'parameters' in doc:
+        for p in doc['parameters']:
+            validate_parameter(p)
+    assert doc['state'] == state
+    keys = ['self']
+    if state in st.ACTIVE_STATES:
+        keys.append('self:cancel')
+    else:
+        keys.append('self:delete')
+    if state == st.STATE_SUCCESS:
+        keys.append('results')
+        for r in doc['resources']:
+            util.validate_doc(doc=r, mandatory=['id', 'name'])
+
+
+# -- Service descriptor -------------------------------------------------------
+
+def validate_service_descriptor(doc):
+    """Validate serialization of the service descriptor.
+
+    Parameters
+    ----------
+    doc: dict
+        Service descriptor serialization
+
+    Raises
+    ------
+    ValueError
+    """
+    util.validate_doc(
+        doc=doc,
+        mandatory=['name', 'version', 'validToken'],
+        optional=['username']
+    )
+
+
 # -- Submissions --------------------------------------------------------------
 
 def validate_submission_handle(doc):
@@ -92,58 +198,3 @@ def validate_submission_listing(doc):
     util.validate_doc(doc=doc, mandatory=['submissions'])
     for s in doc['submissions']:
         util.validate_doc(doc=s, mandatory=['id', 'name', 'benchmark'])
-
-
-# -- Rankings -----------------------------------------------------------------
-
-def validate_ranking(doc):
-    """Validate serialization of a workflow evaluation ranking.
-
-    Parameters
-    ----------
-    doc: dict
-        Ranking serialization
-
-    Raises
-    ------
-    ValueError
-    """
-    util.validate_doc(
-        doc=doc,
-        mandatory=['schema', 'ranking'],
-        optional=['postproc']
-    )
-    # Schema columns
-    for col in doc['schema']:
-        util.validate_doc(doc=col, mandatory=['id', 'name', 'type'])
-    # Run results
-    for entry in doc['ranking']:
-        util.validate_doc(doc=entry, mandatory=['run', 'group', 'results'])
-        util.validate_doc(
-            doc=entry['run'],
-            mandatory=['id', 'createdAt', 'startedAt', 'finishedAt']
-        )
-        util.validate_doc(doc=entry['group'], mandatory=['id', 'name'])
-        for result in entry['results']:
-            util.validate_doc(doc=result, mandatory=['id', 'value'])
-
-
-# -- Service descriptor -------------------------------------------------------
-
-def validate_service_descriptor(doc):
-    """Validate serialization of the service descriptor.
-
-    Parameters
-    ----------
-    doc: dict
-        Service descriptor serialization
-
-    Raises
-    ------
-    ValueError
-    """
-    util.validate_doc(
-        doc=doc,
-        mandatory=['name', 'version', 'validToken'],
-        optional=['username']
-    )

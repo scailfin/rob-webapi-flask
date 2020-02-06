@@ -16,6 +16,7 @@ from robflask.tests.submission import create_submission, upload_file
 
 import flowserv.config.api as config
 import flowserv.model.workflow.state as st
+import robflask.tests.serialize as serialize
 
 
 DIR = os.path.dirname(os.path.realpath(__file__))
@@ -49,7 +50,10 @@ def test_runs(client):
         r = client.get(url, headers=headers_1)
         assert r.status_code == 200
         obj = json.loads(r.data)
+        serialize.validate_run_handle(obj, state=obj['state'])
     assert obj['state'] == st.STATE_SUCCESS
+    serialize.validate_run_handle(obj, state=st.STATE_SUCCESS)
+    benchmark_id = obj['benchmarkId']
     # -- Run resources --------------------------------------------------------
     resources = {r['name']: r for r in obj['resources']}
     assert len(resources) == 2
@@ -70,6 +74,37 @@ def test_runs(client):
     url = '{}/runs/{}/downloads/archive'.format(config.API_PATH(), run_id)
     r = client.get(url, headers=headers_1)
     assert r.status_code == 200
+    # -- Workflow resources ---------------------------------------------------
+    url = '{}/benchmarks/{}'.format(config.API_PATH(), benchmark_id)
+    b = json.loads(client.get(url).data)
+    serialize.validate_benchmark_handle(b)
+    counter = 0
+    while 'postproc' not in b:
+        counter += 1
+        if counter == 10:
+            break
+        time.sleep(1)
+        b = json.loads(client.get(url).data)
+    assert counter < 10
+    counter = 0
+    while b['postproc']['state'] != st.STATE_SUCCESS:
+        counter += 1
+        if counter == 10:
+            break
+        time.sleep(1)
+        b = json.loads(client.get(url).data)
+    assert counter < 10
+    url = '{}/benchmarks/{}/downloads/archive'
+    url = url.format(config.API_PATH(), benchmark_id)
+    r = client.get(url)
+    assert r.status_code == 200
+    assert 'results.tar.gz' in r.headers['Content-Disposition']
+    url = '{}/benchmarks/{}/downloads/resources/{}'
+    resource_id = b['postproc']['resources'][0]['id']
+    url = url.format(config.API_PATH(), benchmark_id, resource_id)
+    r = client.get(url)
+    assert r.status_code == 200
+    assert 'results/compare.json' in r.headers['Content-Disposition']
     # -- Cancel run -----------------------------------------------------------
     url = '{}/submissions/{}/runs'.format(config.API_PATH(), s_id)
     r = client.post(url, json=body, headers=headers_1)
@@ -111,3 +146,33 @@ def test_runs(client):
     assert r.status_code == 204
     r = client.get(url, headers=headers_1)
     assert r.status_code == 404
+    # -- Ranking --------------------------------------------------------------
+    # Start by adding a new run
+    url = '{}/submissions/{}/runs'.format(config.API_PATH(), s_id)
+    body = {
+        'arguments': [
+            {'id': 'names', 'value': file_id},
+            {'id': 'greeting', 'value': 'Hi'}
+        ]
+    }
+    r = client.post(url, json=body, headers=headers_1)
+    run_id = json.loads(r.data)['id']
+    url = '{}/runs/{}'.format(config.API_PATH(), run_id)
+    obj = json.loads(r.data)
+    while obj['state'] == st.STATE_RUNNING:
+        time.sleep(1)
+        r = client.get(url, headers=headers_1)
+        obj = json.loads(r.data)
+    url = '{}/benchmarks/{}/leaderboard'
+    url = url.format(config.API_PATH(), benchmark_id)
+    r = client.get(url)
+    assert r.status_code == 200
+    obj = json.loads(r.data)
+    serialize.validate_ranking(obj)
+    assert len(obj['ranking']) == 1
+    url = url + '?orderBy=avg_count,max_len:asc,max_line:desc&includeAll'
+    r = client.get(url)
+    assert r.status_code == 200
+    obj = json.loads(r.data)
+    serialize.validate_ranking(obj)
+    assert len(obj['ranking']) == 2

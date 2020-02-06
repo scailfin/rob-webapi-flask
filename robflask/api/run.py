@@ -100,7 +100,7 @@ def start_run(submission_id):
         except UnknownParameterError as ex:
             # Convert unknown parameter errors into invalid request errors
             # to avoid sending a 404 response
-            raise err.InvalidRequest(str(ex))
+            raise err.InvalidRequestError(str(ex))
     return make_response(jsonify(r), 201)
 
 
@@ -204,7 +204,7 @@ def cancel_run(run_id):
             )
             reason = obj['reason']
         except ValueError as ex:
-            raise err.InvalidRequest(str(ex))
+            raise err.InvalidRequestError(str(ex))
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.

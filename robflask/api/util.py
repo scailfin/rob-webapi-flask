@@ -68,14 +68,11 @@ def jsonbody(request, mandatory=None, optional=None):
     ------
     robflask.error.InvalidRequest
     """
-    # Verify that the request contains a valid Json object
-    if not request.json:
-        raise err.InvalidRequest('no JSON object')
     try:
         return validate_doc(
             request.json,
             mandatory=mandatory,
             optional=optional
         )
-    except ValueError as ex:
-        raise err.InvalidRequest(str(ex))
+    except (AttributeError, TypeError, ValueError) as ex:
+        raise err.InvalidRequestError(str(ex))
