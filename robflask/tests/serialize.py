@@ -158,9 +158,11 @@ def validate_service_descriptor(doc):
     """
     util.validate_doc(
         doc=doc,
-        mandatory=['name', 'version', 'validToken'],
+        mandatory=['name', 'version', 'validToken', 'routes'],
         optional=['username']
     )
+    for r in doc['routes']:
+        util.validate_doc(doc=r, mandatory=['action', 'pattern'])
 
 
 # -- Submissions --------------------------------------------------------------

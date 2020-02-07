@@ -1197,6 +1197,7 @@ definitions:
     - name
     - version
     - validToken
+    - routes
     properties:
       name:
         type: string
@@ -1206,6 +1207,18 @@ definitions:
         type: boolean
       username:
         type: string
+      routes:
+        type: array
+        items:
+          type: object
+          required:
+          - action
+          - pattern
+          properties:
+            action:
+              type: string
+            pattern:
+              type: string
   SubmissionHandle:
     type: object
     description: Handle for benchmark submission
