@@ -1,14 +1,9 @@
-============================================
-Reproducible Open Benchmarks - Flask Web API
-============================================
-
-.. image:: https://img.shields.io/badge/License-MIT-yellow.svg
-   :target: https://github.com/scailfin/rob-webapi-flask/blob/master/LICENSE
-
-
 .. figure:: https://github.com/scailfin/rob-webapi-flask/blob/flowserv/docs/figures/logo.png
    :align: center
    :alt: ROB Web API Logo
+
+.. image:: https://img.shields.io/badge/License-MIT-yellow.svg
+  :target: https://github.com/scailfin/rob-webapi-flask/blob/master/LICENSE
 
 
 
