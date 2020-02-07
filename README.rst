@@ -6,6 +6,11 @@ Reproducible Open Benchmarks - Flask Web API
    :target: https://github.com/scailfin/rob-webapi-flask/blob/master/LICENSE
 
 
+.. figure:: https://github.com/scailfin/rob-webapi-flask/blob/flowserv/docs/figures/logo.png
+   :align: center
+   :alt: ROB Web API Logo
+
+
 
 About
 =====
