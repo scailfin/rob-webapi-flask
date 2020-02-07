@@ -15,7 +15,7 @@ from robflask.tests.user import USER_TOKEN
 import flowserv.config.api as config
 import flowserv.tests.serialize as serialize
 import robflask.api.user as user
-import robflask.api.util as util
+import robflask.api.auth as auth
 
 
 LABELS = {
@@ -50,7 +50,7 @@ def test_list_users(client):
     data = {LABELS['NAME']: 'user1', LABELS['PASSWORD']: 'pwd'}
     r = client.post(config.API_PATH() + '/users/login', json=data)
     token = json.loads(r.data)[LABELS['TOKEN']]
-    headers = {util.HEADER_TOKEN: token}
+    headers = {auth.HEADER_TOKEN: token}
     r = client.get(config.API_PATH() + '/users', headers=headers)
     assert r.status_code == 200
     assert len(json.loads(r.data)[LABELS['USERS']]) == 1
@@ -92,7 +92,7 @@ def test_register_user(client):
     assert r.status_code == 200
     serialize.validate_user_handle(json.loads(r.data), True, inactive=False)
     token = json.loads(r.data)[LABELS['TOKEN']]
-    headers = {util.HEADER_TOKEN: token}
+    headers = {auth.HEADER_TOKEN: token}
     # Whoami (user1)
     r = client.get(config.API_PATH() + '/users/whoami', headers=headers)
     assert r.status_code == 200
@@ -126,7 +126,7 @@ def test_reset_password(client):
     data = {LABELS['NAME']: 'user1', LABELS['PASSWORD']: 'pwd'}
     r = client.post(config.API_PATH() + '/users/login', json=data)
     token = json.loads(r.data)[LABELS['TOKEN']]
-    headers = {util.HEADER_TOKEN: token}
+    headers = {auth.HEADER_TOKEN: token}
     r = client.get(config.API_PATH() + '/users/whoami', headers=headers)
     assert r.status_code == 200
     # Reset password for user1. This should also invalidate the access token.

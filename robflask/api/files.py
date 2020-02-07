@@ -13,7 +13,7 @@ submissions.
 from flask import Blueprint, jsonify, make_response, request, send_file
 from werkzeug.utils import secure_filename
 
-from robflask.api.util import ACCESS_TOKEN
+from robflask.api.auth import ACCESS_TOKEN
 from robflask.service import service
 
 import flowserv.config.api as config

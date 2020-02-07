@@ -11,7 +11,7 @@
 import io
 import json
 
-from robflask.api.util import HEADER_TOKEN
+from robflask.api.auth import HEADER_TOKEN
 from robflask.tests.benchmark import get_benchmark
 from robflask.tests.user import create_user
 

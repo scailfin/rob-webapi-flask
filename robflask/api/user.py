@@ -10,7 +10,8 @@
 
 from flask import Blueprint, jsonify, make_response, request
 
-from robflask.api.util import jsonbody, ACCESS_TOKEN
+from robflask.api.auth import ACCESS_TOKEN
+from robflask.api.util import jsonbody
 from robflask.service import service
 
 import flowserv.config.api as config

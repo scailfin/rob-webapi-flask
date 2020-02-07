@@ -78,5 +78,6 @@ dev/resources/api/
 dev/resources/config/
 
 # ROB API base directory
+.flowserv/
 .rob/
-dev/resources/localdev
+resources/config/local_dev

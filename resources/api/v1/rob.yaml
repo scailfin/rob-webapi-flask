@@ -104,7 +104,7 @@ paths:
         type: string
       - in: "query"
         name: "orderBy"
-        description: "List of result column names to order by (can include optional sort order). FOrmat is columnName[:ASC|DESC],"
+        description: "List of result column names to order by (can include optional sort order). Format is columnName[:ASC|DESC],"
         required: false
         type: string
       - in: "query"
@@ -121,6 +121,52 @@ paths:
           description: "Invalid sort statement"
         404:
           description: "Unknown benchmark"
+  /benchmarks/{benchmarkId}/downloads/archive:
+    get:
+      tags:
+      - "benchmark"
+      summary: "Download resource file archive"
+      description: "Download a tar archive containing all benchmark resource file"
+      operationId: "downloadResourceArchive"
+      produces:
+      - "application/gzip"
+      parameters:
+      - in: "path"
+        name: "benchmarkId"
+        description: "Unique benchmark identifier"
+        required: true
+        type: string
+      responses:
+        200:
+          description: "File"
+        404:
+          description: "Unknown benchmark resource"
+  /benchmarks/{benchmarkId}/downloads/resources/{resourceId}:
+    get:
+      tags:
+      - "benchmark"
+      summary: "Download resource file"
+      description: "Download a benchmark resource file"
+      operationId: "downloadResource"
+      produces:
+      - "text/csv"
+      - "image/png"
+      parameters:
+      - in: "path"
+        name: "benchmarkId"
+        description: "Unique benchmark identifier"
+        required: true
+        type: string
+      - in: "path"
+        name: "resourceId"
+        description: "Unique resource identifier"
+        required: true
+        type: string
+      responses:
+        200:
+          description: "File"
+        404:
+          description: "Unknown benchmark resource"
 # -- Submissions --------------------------------------------------------------
   /benchmarks/{benchmarkId}/submissions:
     get:
@@ -872,6 +918,24 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/BenchmarkParameter'
+      modules:
+        type: array
+        items:
+          type: object
+          required:
+          - id
+          - name
+          - index
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            index:
+              type: number
+              format: int64
+      postproc:
+        $ref: "#/definitions/RunHandle"
   BenchmarkLeaderboard:
     type: object
     description: "Ordered list of run results"
@@ -926,6 +990,8 @@ definitions:
                     type: string
                   value:
                     type: integer
+      postproc:
+        $ref: "#/definitions/RunHandle"
       schema:
         type: array
         items:
@@ -1073,11 +1139,16 @@ definitions:
     description: "Handle containing all information for a benchmark run"
     required:
     - id
+    - benchmarkId
     - parameters
     - arguments
     - state
     properties:
       id:
+        type: string
+      benchmarkId:
+        type: string
+      submissionId:
         type: string
       parameters:
         type: array
