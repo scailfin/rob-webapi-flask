@@ -1230,7 +1230,6 @@ definitions:
     - members
     - parameters
     - files
-    - runs
     properties:
       id:
         type: string
@@ -1256,10 +1255,6 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/FileHandle"
-      runs:
-        type: array
-        items:
-          $ref: "#/definitions/RunDescriptor"
   SubmissionListing:
     type: object
     description: List of submission descriptors
