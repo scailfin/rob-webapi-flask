@@ -2,9 +2,9 @@
    :target: https://github.com/scailfin/rob-webapi-flask/blob/master/LICENSE
 
 
-.. figure:: https://github.com/scailfin/rob-webapi-flask/blob/flowserv/docs/figures/logo.png
+.. figure:: https://github.com/scailfin/rob-webapi-flask/blob/flowserv/docs/graphics/header-webapi.png
    :align: center
-   :alt: ROB Web API Logo
+   :alt: ROB Web Service Implementation (using Flask)
 
 
 
