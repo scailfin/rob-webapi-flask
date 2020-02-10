@@ -28,7 +28,7 @@ def validate_benchmark_handle(doc):
     ------
     ValueError
     """
-    mandatory = ['id', 'name', 'parameters']
+    mandatory = ['id', 'name', 'parameters', 'submissions']
     optional = ['description', 'instructions', 'postproc', 'modules']
     util.validate_doc(doc=doc, mandatory=mandatory, optional=optional)
     # Validate the post-processing run handle if present
@@ -181,8 +181,18 @@ def validate_submission_handle(doc):
     """
     util.validate_doc(
         doc=doc,
-        mandatory=['id', 'name', 'benchmark', 'members', 'parameters', 'files']
+        mandatory=[
+            'id',
+            'name',
+            'benchmark',
+            'members',
+            'parameters',
+            'files',
+            'runs'
+        ]
     )
+    for run in doc['runs']:
+        validate_run_handle(run, state=run['state'])
 
 
 def validate_submission_listing(doc):

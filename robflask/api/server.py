@@ -11,7 +11,7 @@
 from flask import Blueprint, jsonify, request
 
 from robflask.api.auth import ACCESS_TOKEN
-from robflask.service import service
+from robflask.service.base import service
 
 import flowserv.config.api as config
 

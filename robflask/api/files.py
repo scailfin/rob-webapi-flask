@@ -14,7 +14,7 @@ from flask import Blueprint, jsonify, make_response, request, send_file
 from werkzeug.utils import secure_filename
 
 from robflask.api.auth import ACCESS_TOKEN
-from robflask.service import service
+from robflask.service.base import service
 
 import flowserv.config.api as config
 import robflask.error as err

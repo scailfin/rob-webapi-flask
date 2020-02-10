@@ -14,7 +14,7 @@ from flowserv.core.error import UnknownUserError
 
 from robflask.api.auth import ACCESS_TOKEN
 from robflask.api.util import jsonbody
-from robflask.service import service
+from robflask.service.base import service
 
 import flowserv.config.api as config
 import flowserv.model.parameter.base as pb
@@ -199,10 +199,12 @@ def get_submission(submission_id):
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
     with service() as api:
-        # Authenticate the user from the api_token in the header. This
-        # will raise an exception if the user is currently not logged in.
-        api.authenticate(token)
-        r = api.submissions().get_submission(submission_id=submission_id)
+        # Authentication of the user from the expected api_token in the header
+        # will fail if no token is given or if the user is not logged in.
+        r = api.submissions().get_submission(
+            submission_id=submission_id,
+            user_id=api.authenticate(token).identifier
+        )
     return make_response(jsonify(r), 200)
 
 

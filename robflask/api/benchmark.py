@@ -11,7 +11,8 @@
 from flask import Blueprint, jsonify, make_response, request, send_file
 
 from flowserv.model.template.schema import SortColumn
-from robflask.service import service
+from robflask.api.auth import ACCESS_TOKEN
+from robflask.service.base import service
 
 import flowserv.config.api as config
 
@@ -52,8 +53,19 @@ def get_benchmark(benchmark_id):
     ------
     flowserv.core.error.UnknownWorkflowError
     """
+    # Get the access token first. Do not raise raise an error if no token is
+    # present.
+    token = ACCESS_TOKEN(request, raise_error=False)
     with service() as api:
-        r = api.benchmarks().get_benchmark(benchmark_id)
+        # Set the user identifier depending on whether a token was given.
+        if token is not None:
+            user_id = api.authenticate(token).identifier
+        else:
+            user_id = None
+        r = api.benchmarks().get_benchmark(
+            benchmark_id=benchmark_id,
+            user_id=user_id
+        )
     return make_response(jsonify(r), 200)
 
 
@@ -115,6 +127,7 @@ def get_leaderboard(benchmark_id):
         )
     return make_response(jsonify(r), 200)
 
+
 @bp.route('/benchmarks/<string:benchmark_id>/downloads/archive')
 def download_benchmark_archive(benchmark_id):
     """Download a compressed tar archive containing all current resource files
@@ -142,6 +155,7 @@ def download_benchmark_archive(benchmark_id):
         attachment_filename='results.tar.gz',
         mimetype='application/gzip'
     )
+
 
 @bp.route('/benchmarks/<string:benchmark_id>/downloads/resources/<string:resource_id>')
 def get_benchmark_resource(benchmark_id, resource_id):

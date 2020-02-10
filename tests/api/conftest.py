@@ -20,7 +20,7 @@ from flowserv.config.api import FLOWSERV_API_BASEDIR
 from flowserv.config.db import FLOWSERV_DB_ID
 from flowserv.config.install import DB
 from robflask.api import create_app
-from robflask.service import service
+from robflask.service.base import service
 
 import flowserv.core.db.driver as driver
 import flowserv.core.db.sqlite as sqlite

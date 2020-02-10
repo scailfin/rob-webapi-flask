@@ -146,6 +146,12 @@ def test_runs(client):
     assert r.status_code == 204
     r = client.get(url, headers=headers_1)
     assert r.status_code == 404
+    # -- Submission handle contains runs --------------------------------------
+    url = '{}/submissions/{}'.format(config.API_PATH(), s_id)
+    r = client.get(url, headers=headers_1)
+    obj = json.loads(r.data)
+    assert len(obj['runs']) > 0
+    serialize.validate_submission_handle(obj)
     # -- Ranking --------------------------------------------------------------
     # Start by adding a new run
     url = '{}/submissions/{}/runs'.format(config.API_PATH(), s_id)

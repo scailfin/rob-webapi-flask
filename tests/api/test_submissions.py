@@ -76,9 +76,9 @@ def test_submission_life_cycle(client):
     headers_2 = {HEADER_TOKEN: token_2}
     url = ACCESS_SUBMISSION.format(config.API_PATH(), s_id)
     body = {'name': 'Submission (updated)', 'members': [user_1, user_2]}
-    # Initially the new user can retrieve the submission but not update it
+    # Initially the new user cannot retrieve the submission or update it
     r = client.get(url, headers=headers_2)
-    assert r.status_code == 200
+    assert r.status_code == 403
     r = client.put(url, json=body, headers=headers_2)
     assert r.status_code == 403
     # The owner of the submission can update it

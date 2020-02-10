@@ -13,7 +13,7 @@ from flask import Blueprint, jsonify, make_response, request, send_file
 from flowserv.core.error import UnknownParameterError
 from robflask.api.auth import ACCESS_TOKEN
 from robflask.api.util import jsonbody
-from robflask.service import service
+from robflask.service.base import service
 
 import flowserv.config.api as config
 import flowserv.core.util as util
