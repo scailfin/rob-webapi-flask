@@ -962,6 +962,17 @@ definitions:
               format: int64
       postproc:
         $ref: "#/definitions/RunHandle"
+      outputs:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            title:
+              type: string
+            caption:
+              type: string
       submissions:
         $ref: "#/definitions/SubmissionListing"
   BenchmarkLeaderboard:
