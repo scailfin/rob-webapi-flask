@@ -1,16 +1,17 @@
-============================================
-Reproducible Open Benchmarks - Flask Web API
-============================================
-
 .. image:: https://img.shields.io/badge/License-MIT-yellow.svg
    :target: https://github.com/scailfin/rob-webapi-flask/blob/master/LICENSE
+
+
+.. figure:: https://github.com/scailfin/rob-webapi-flask/blob/flowserv/docs/graphics/header-webapi.png
+   :align: center
+   :alt: ROB Web Service Implementation (using Flask)
 
 
 
 About
 =====
 
-This is the default RESTful Web API implementation for the `Reproducible Open Benchmarks for Data Analysis Platform (ROB) <https://github.com/scailfin/rob-core>`_ using  the `Flask web framework <https://flask.palletsprojects.com>`_.
+This is the default RESTful Web API implementation for the `Reproducible Open Benchmarks for Data Analysis Platform (ROB) <https://github.com/scailfin/flowserv-core>`_ using  the `Flask web framework <https://flask.palletsprojects.com>`_.
 
 
 
@@ -41,13 +42,12 @@ The Flask Web API for ROB requires the ``robcore`` package. The following steps 
 
 .. code-block:: bash
 
-    git clone git@github.com:scailfin/rob-core.git
-    pip install -e rob-core
+    pip install flowserv
     git clone git@github.com:scailfin/rob-webapi-flask.git
     pip install -e rob-webapi-flask
 
 
-The primary configuration parameters are defined in the `ROB Configuration documentation <https://github.com/scailfin/rob-core/blob/master/docs/configuration.rst>`_. Two additional environment variables are defined by the Web API:
+The primary configuration parameters are defined in the `ROB Configuration documentation <https://github.com/scailfin/flowserv-core/blob/master/docs/configuration.rst>`_. Two additional environment variables are defined by the Web API:
 
 - **ROB_WEBAPI_LOG**: Directory path for API logs (default: ``$ROB_API_DIR/log``)
 - **ROB_WEBAPI_CONTENTLENGTH**: Maximum size of uploaded files (default: ``16MB``)

@@ -13,8 +13,8 @@ submissions.
 from flask import Blueprint, jsonify, make_response, request, send_file
 from werkzeug.utils import secure_filename
 
-from robflask.api.util import ACCESS_TOKEN
-from robflask.service import service
+from robflask.api.auth import ACCESS_TOKEN
+from robflask.service.base import service
 
 import flowserv.config.api as config
 import robflask.error as err
@@ -50,7 +50,7 @@ def list_files(submission_id):
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         r = api.uploads().list_files(
-            submission_id=submission_id,
+            group_id=submission_id,
             user_id=api.authenticate(token).identifier
         )
     return make_response(jsonify(r), 200)
@@ -85,28 +85,29 @@ def upload_file(submission_id):
         file = request.files['file']
         # A browser may submit a empty part without filename
         if file.filename == '':
-            raise err.InvalidRequest('empty file name')
+            raise err.InvalidRequestError('empty file name')
         # Save uploaded file to temp directory
         filename = secure_filename(file.filename)
         with service() as api:
-            # Authentication of the user from the expected api_token in the header
-            # will fail if no token is given or if the user is not logged in.
+            # Authentication of the user from the expected api_token in the
+            # header will fail if the user is not logged in.
             r = api.uploads().upload_file(
-                submission_id=submission_id,
+                group_id=submission_id,
                 file=file,
-                file_name=filename,
+                name=filename,
                 user_id=api.authenticate(token).identifier
             )
         return make_response(jsonify(r), 201)
     else:
-        raise err.InvalidRequest('no file request')
+        raise err.InvalidRequestError('no file request')
 
 
 @bp.route('/submissions/<string:submission_id>/files/<string:file_id>', methods=['GET'])
 def download_file(submission_id, file_id):
-    """Download a given file that was perviously uploaded for a submission. The
-    user has to be a member of the submission in order to be allowed to access
-    files.
+    """Download a given file that was perviously uploaded for a submission.
+
+    NOTE: At this point, the user is not authenticated for file downloads to
+    allow download in the GUI via browser redirect.
 
     Parameters
     ----------
@@ -125,21 +126,15 @@ def download_file(submission_id, file_id):
     flowserv.core.error.UnauthorizedAccessError
     flowserv.core.error.UnknownFileError
     """
-    # Get the access token first to raise an error immediately if no token is
-    # present (to avoid unnecessarily instantiating the service API).
-    token = ACCESS_TOKEN(request)
     with service() as api:
-        # Authentication of the user from the expected api_token in the header
-        # will fail if no token is given or if the user is not logged in.
         fh, _ = api.uploads().get_file(
-            submission_id=submission_id,
-            file_id=file_id,
-            user_id=api.authenticate(token).identifier
+            group_id=submission_id,
+            file_id=file_id
         )
     return send_file(
-        fh.filepath,
+        fh.filename,
         as_attachment=True,
-        attachment_filename=fh.file_name,
+        attachment_filename=fh.name,
         mimetype=fh.mimetype
     )
 
@@ -174,7 +169,7 @@ def delete_file(submission_id, file_id):
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         api.uploads().delete_file(
-            submission_id=submission_id,
+            group_id=submission_id,
             file_id=file_id,
             user_id=api.authenticate(token).identifier
         )

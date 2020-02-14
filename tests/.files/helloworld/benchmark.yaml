@@ -35,10 +35,35 @@ parameters:
       as: data/names.txt
     - id: sleeptime
       datatype: int
-      defaultValue: 1
+      defaultValue: 2
     - id: greeting
       datatype: string
       defaultValue: 'Hello'
+postproc:
+    workflow:
+        version: 0.3.0
+        inputs:
+          files:
+            - code/postproc.py
+            - $[[runs]]
+          parameters:
+            rundir: $[[runs]]
+        workflow:
+          type: serial
+          specification:
+            steps:
+              - environment: 'python:3.7'
+                commands:
+                  - python code/postproc.py
+                      --runs "${rundir}"
+                      --outputfile results/compare.json
+        outputs:
+            files:
+                - 'results/compare.json'
+    inputs:
+        files:
+            - 'results/analytics.json'
+        runs: 'runs/'
 results:
     file: 'results/analytics.json'
     schema:

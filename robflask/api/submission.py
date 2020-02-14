@@ -10,8 +10,11 @@
 
 from flask import Blueprint, jsonify, make_response, request
 
-from robflask.api.util import jsonbody, ACCESS_TOKEN
-from robflask.service import service
+from flowserv.core.error import UnknownUserError
+
+from robflask.api.auth import ACCESS_TOKEN
+from robflask.api.util import jsonbody
+from robflask.service.base import service
 
 import flowserv.config.api as config
 import flowserv.model.parameter.base as pb
@@ -59,7 +62,7 @@ def create_submission(benchmark_id):
     name = obj[LABEL_NAME]
     members = obj[LABEL_MEMBERS] if LABEL_MEMBERS in obj else None
     if members is not None and not isinstance(members, list):
-        raise err.InvalidRequest('members not a list')
+        raise err.InvalidRequestError('members not a list')
     parameters = None
     if LABEL_PARAMETERS in obj:
         parameters = pb.create_parameter_index(
@@ -77,10 +80,10 @@ def create_submission(benchmark_id):
                 user_id=api.authenticate(token).identifier,
                 members=members
             )
-        except err.UnknownUserError as ex:
+        except UnknownUserError as ex:
             # Change error type from unknown object to invalid request if a
             # user in the member list is unknown
-            raise err.InvalidRequest(str(ex))
+            raise err.InvalidRequestError(str(ex))
     return make_response(jsonify(r), 201)
 
 
@@ -196,10 +199,12 @@ def get_submission(submission_id):
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
     with service() as api:
-        # Authenticate the user from the api_token in the header. This
-        # will raise an exception if the user is currently not logged in.
-        api.authenticate(token)
-        r = api.submissions().get_submission(submission_id=submission_id)
+        # Authentication of the user from the expected api_token in the header
+        # will fail if no token is given or if the user is not logged in.
+        r = api.submissions().get_submission(
+            submission_id=submission_id,
+            user_id=api.authenticate(token).identifier
+        )
     return make_response(jsonify(r), 200)
 
 

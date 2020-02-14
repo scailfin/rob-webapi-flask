@@ -1,3 +1,3 @@
 
-export ROB_ENGINE_CLASS=MultiProcessWorkflowEngine
-export ROB_ENGINE_MODULE=robcore.controller.backend.multiproc
+export FLOWSERV_BACKEND_CLASS=SerialWorkflowEngine
+export FLOWSERV_BACKEND_MODULE=flowserv.controller.serial.engine

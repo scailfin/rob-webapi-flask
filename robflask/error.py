@@ -11,7 +11,7 @@ already defined and raised by API service components of flowServ).
 """
 
 
-class InvalidRequest(Exception):
+class InvalidRequestError(Exception):
     """Error that is raised when a user request does not contain a valid
     request body.
     """

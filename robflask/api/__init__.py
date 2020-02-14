@@ -69,7 +69,7 @@ def create_app(test_config=None):
         """
         return make_response(jsonify({'message': str(error)}), 400)
 
-    @app.errorhandler(rob.InvalidRequest)
+    @app.errorhandler(rob.InvalidRequestError)
     def invalid_request_body(error):
         """JSON response handler for requests that do not contain a valid
         request body.
@@ -159,6 +159,9 @@ def create_app(test_config=None):
     # Submission Service
     import robflask.api.submission as submissions
     app.register_blueprint(submissions.bp)
+    # Submission File Upload Service
+    import robflask.api.files as files
+    app.register_blueprint(files.bp)
     # User Service
     import robflask.api.user as users
     app.register_blueprint(users.bp)

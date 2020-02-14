@@ -8,8 +8,16 @@ info:
   license:
     name: "MIT"
     url: "https://opensource.org/licenses/MIT"
+# -----------------------------------------------------------------------------
+# Base URL
+# -----------------------------------------------------------------------------
+schemes:
+- "http"
 host: "localhost:5000"
 basePath: "/rob/api/v1"
+# -----------------------------------------------------------------------------
+# Grouping of API Routes
+# -----------------------------------------------------------------------------
 tags:
 - name: "service"
   description: "Service description"
@@ -23,12 +31,10 @@ tags:
   description: "Uploaded files for benchmark submissions"
 - name: "user"
   description: "Authenticate and register users"
-schemes:
-- "http"
-paths:
 # -----------------------------------------------------------------------------
 # API Routes
 # -----------------------------------------------------------------------------
+paths:
 # -- Service ------------------------------------------------------------------
   /:
     get:
@@ -44,6 +50,8 @@ paths:
           description: "Service descriptor"
           schema:
             $ref: "#/definitions/ServiceDescriptor"
+      security:
+        - api_key: []
 # -- Benchmarks ---------------------------------------------------------------
   /benchmarks:
     get:
@@ -98,7 +106,7 @@ paths:
         type: string
       - in: "query"
         name: "orderBy"
-        description: "List of result column names to order by (can include optional sort order). FOrmat is columnName[:ASC|DESC],"
+        description: "List of result column names to order by (can include optional sort order). Format is columnName[:ASC|DESC],"
         required: false
         type: string
       - in: "query"
@@ -115,6 +123,52 @@ paths:
           description: "Invalid sort statement"
         404:
           description: "Unknown benchmark"
+  /benchmarks/{benchmarkId}/downloads/archive:
+    get:
+      tags:
+      - "benchmark"
+      summary: "Download resource file archive"
+      description: "Download a tar archive containing all benchmark resource file"
+      operationId: "downloadResourceArchive"
+      produces:
+      - "application/gzip"
+      parameters:
+      - in: "path"
+        name: "benchmarkId"
+        description: "Unique benchmark identifier"
+        required: true
+        type: string
+      responses:
+        200:
+          description: "File"
+        404:
+          description: "Unknown benchmark resource"
+  /benchmarks/{benchmarkId}/downloads/resources/{resourceId}:
+    get:
+      tags:
+      - "benchmark"
+      summary: "Download resource file"
+      description: "Download a benchmark resource file"
+      operationId: "downloadResource"
+      produces:
+      - "text/csv"
+      - "image/png"
+      parameters:
+      - in: "path"
+        name: "benchmarkId"
+        description: "Unique benchmark identifier"
+        required: true
+        type: string
+      - in: "path"
+        name: "resourceId"
+        description: "Unique resource identifier"
+        required: true
+        type: string
+      responses:
+        200:
+          description: "File"
+        404:
+          description: "Unknown benchmark resource"
 # -- Submissions --------------------------------------------------------------
   /benchmarks/{benchmarkId}/submissions:
     get:
@@ -358,6 +412,37 @@ paths:
           description: "Unknown submission"
       security:
         - api_key: []
+  /submissions/{submissionId}/runs/poll:
+    get:
+      tags:
+      - "run"
+      summary: "Poll runs state"
+      description: "Get listing of all runs in a given state"
+      operationId: "pollSubmissionRuns"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "submissionId"
+        description: "Unique submission identifier"
+        required: true
+        type: string
+      - in: "query"
+        name: "state"
+        description: "Run state identifier"
+        required: false
+        type: string
+      responses:
+        200:
+          description: "Run identifier listing"
+          schema:
+            $ref: "#/definitions/RunIdentifierListing"
+        403:
+          description: "Forbidden operation"
+        404:
+          description: "Unknown submission"
+      security:
+        - api_key: []
   /runs/{runId}:
     delete:
       tags:
@@ -467,8 +552,6 @@ paths:
           description: "Forbidden operation"
         404:
           description: "Unknown run"
-      security:
-        - api_key: []
   /runs/{runId}/downloads/resources/{resourceId}:
     get:
       tags:
@@ -497,8 +580,6 @@ paths:
           description: "Forbidden operation"
         404:
           description: "Unknown run or resource"
-      security:
-        - api_key: []
 # -- Uploads ------------------------------------------------------------------
   /submissions/{submissionId}/files:
     get:
@@ -617,12 +698,8 @@ paths:
       responses:
         200:
           description: "File"
-        403:
-          description: "Forbidden operation"
         404:
           description: "Unknown submission or file"
-      security:
-        - api_key: []
 # -- Users --------------------------------------------------------------------
   /users:
     get:
@@ -853,6 +930,7 @@ definitions:
     - id
     - name
     - parameters
+    - submissions
     properties:
       id:
         type: string
@@ -866,6 +944,37 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/BenchmarkParameter'
+      modules:
+        type: array
+        items:
+          type: object
+          required:
+          - id
+          - name
+          - index
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            index:
+              type: number
+              format: int64
+      postproc:
+        $ref: "#/definitions/RunHandle"
+      outputs:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            title:
+              type: string
+            caption:
+              type: string
+      submissions:
+        $ref: "#/definitions/SubmissionListing"
   BenchmarkLeaderboard:
     type: object
     description: "Ordered list of run results"
@@ -920,6 +1029,8 @@ definitions:
                     type: string
                   value:
                     type: integer
+      postproc:
+        $ref: "#/definitions/RunHandle"
       schema:
         type: array
         items:
@@ -1044,34 +1155,29 @@ definitions:
     required:
     - id
     - state
-    - arguments
+    - createdAt
     properties:
       id:
         type: string
       state:
         type: string
-      startedAt:
+      createdAt:
         type: string
-      finishedAt:
-        type: string
-      arguments:
-        type: array
-        items:
-          $ref: "#/definitions/RunArgument"
-      messages:
-        type: array
-        items:
-          type: string
   RunHandle:
     type: object
     description: "Handle containing all information for a benchmark run"
     required:
     - id
+    - benchmark
     - parameters
     - arguments
     - state
     properties:
       id:
+        type: string
+      benchmark:
+        type: string
+      submission:
         type: string
       parameters:
         type: array
@@ -1103,6 +1209,16 @@ definitions:
               type: string
             name:
               type: string
+  RunIdentifierListing:
+    type: object
+    description: "List of run identifier"
+    required:
+    - runs
+    properties:
+      runs:
+        type: array
+        items:
+          type: string
   RunListing:
     type: object
     description: "Listing of run handles"
@@ -1120,6 +1236,7 @@ definitions:
     - name
     - version
     - validToken
+    - routes
     properties:
       name:
         type: string
@@ -1129,6 +1246,18 @@ definitions:
         type: boolean
       username:
         type: string
+      routes:
+        type: array
+        items:
+          type: object
+          required:
+          - action
+          - pattern
+          properties:
+            action:
+              type: string
+            pattern:
+              type: string
   SubmissionHandle:
     type: object
     description: Handle for benchmark submission
@@ -1154,7 +1283,7 @@ definitions:
           properties:
             id:
               type: string
-            name:
+            username:
               type: string
       parameters:
         type: array
@@ -1167,7 +1296,7 @@ definitions:
       runs:
         type: array
         items:
-          $ref: "#/definitions/RunDescriptor"
+          $ref: "#/definitions/RunHandle"
   SubmissionListing:
     type: object
     description: List of submission descriptors

@@ -1,4 +1,4 @@
 future
-flowserv>=0.1.0
+flowserv-core>=0.1.0
 flask
 flask_cors
