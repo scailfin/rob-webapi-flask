@@ -104,9 +104,10 @@ def upload_file(submission_id):
 
 @bp.route('/submissions/<string:submission_id>/files/<string:file_id>', methods=['GET'])
 def download_file(submission_id, file_id):
-    """Download a given file that was perviously uploaded for a submission. The
-    user has to be a member of the submission in order to be allowed to access
-    files.
+    """Download a given file that was perviously uploaded for a submission.
+
+    NOTE: At this point, the user is not authenticated for file downloads to
+    allow download in the GUI via browser redirect.
 
     Parameters
     ----------
@@ -125,16 +126,10 @@ def download_file(submission_id, file_id):
     flowserv.core.error.UnauthorizedAccessError
     flowserv.core.error.UnknownFileError
     """
-    # Get the access token first to raise an error immediately if no token is
-    # present (to avoid unnecessarily instantiating the service API).
-    token = ACCESS_TOKEN(request)
     with service() as api:
-        # Authentication of the user from the expected api_token in the header
-        # will fail if no token is given or if the user is not logged in.
         fh, _ = api.uploads().get_file(
             group_id=submission_id,
-            file_id=file_id,
-            user_id=api.authenticate(token).identifier
+            file_id=file_id
         )
     return send_file(
         fh.filename,

@@ -113,16 +113,12 @@ class SubmissionService(object):
         """
         # Get the default submission handle
         doc = self.group_service.get_group(group_id=submission_id)
-        # Add serialized handles for all submission runs
-        runs = list()
-        descriptors = self.run_service.list_runs(
+        # Add serialized descriptors for all submission runs
+        listing = self.run_service.list_runs(
             group_id=submission_id,
             user_id=user_id
         )
-        for run in descriptors['runs']:
-            r_id = run['id']
-            runs.append(self.run_service.get_run(run_id=r_id, user_id=user_id))
-        doc['runs'] = runs
+        doc['runs'] = listing['runs']
         return doc
 
     def list_submissions(self, benchmark_id=None, user_id=None):

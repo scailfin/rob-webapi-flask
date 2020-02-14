@@ -521,8 +521,6 @@ paths:
           description: "Forbidden operation"
         404:
           description: "Unknown run"
-      security:
-        - api_key: []
   /runs/{runId}/downloads/resources/{resourceId}:
     get:
       tags:
@@ -551,8 +549,6 @@ paths:
           description: "Forbidden operation"
         404:
           description: "Unknown run or resource"
-      security:
-        - api_key: []
 # -- Uploads ------------------------------------------------------------------
   /submissions/{submissionId}/files:
     get:
@@ -671,12 +667,8 @@ paths:
       responses:
         200:
           description: "File"
-        403:
-          description: "Forbidden operation"
         404:
           description: "Unknown submission or file"
-      security:
-        - api_key: []
 # -- Users --------------------------------------------------------------------
   /users:
     get:
