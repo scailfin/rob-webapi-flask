@@ -1,6 +1,12 @@
 .. image:: https://img.shields.io/badge/License-MIT-yellow.svg
    :target: https://github.com/scailfin/rob-webapi-flask/blob/master/LICENSE
 
+.. image:: https://github.com/scailfin/flowserv-core/workflows/build/badge.svg
+   :target: https://github.com/scailfin/flowserv-core/actions?query=workflow%3A%22build%22
+
+.. image:: https://codecov.io/gh/scailfin/rob-webapi-flask/branch/master/graph/badge.svg
+ :target: https://codecov.io/gh/scailfin/rob-webapi-flask
+
 
 .. figure:: https://github.com/scailfin/rob-webapi-flask/blob/flowserv/docs/graphics/header-webapi.png
    :align: center
