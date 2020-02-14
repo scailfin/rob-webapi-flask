@@ -412,6 +412,37 @@ paths:
           description: "Unknown submission"
       security:
         - api_key: []
+  /submissions/{submissionId}/runs/poll:
+    get:
+      tags:
+      - "run"
+      summary: "Poll runs state"
+      description: "Get listing of all runs in a given state"
+      operationId: "pollSubmissionRuns"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "submissionId"
+        description: "Unique submission identifier"
+        required: true
+        type: string
+      - in: "query"
+        name: "state"
+        description: "Run state identifier"
+        required: false
+        type: string
+      responses:
+        200:
+          description: "Run identifier listing"
+          schema:
+            $ref: "#/definitions/RunIdentifierListing"
+        403:
+          description: "Forbidden operation"
+        404:
+          description: "Unknown submission"
+      security:
+        - api_key: []
   /runs/{runId}:
     delete:
       tags:
@@ -1113,39 +1144,29 @@ definitions:
     required:
     - id
     - state
-    - arguments
+    - createdAt
     properties:
       id:
         type: string
       state:
         type: string
-      startedAt:
+      createdAt:
         type: string
-      finishedAt:
-        type: string
-      arguments:
-        type: array
-        items:
-          $ref: "#/definitions/RunArgument"
-      messages:
-        type: array
-        items:
-          type: string
   RunHandle:
     type: object
     description: "Handle containing all information for a benchmark run"
     required:
     - id
-    - benchmarkId
+    - benchmark
     - parameters
     - arguments
     - state
     properties:
       id:
         type: string
-      benchmarkId:
+      benchmark:
         type: string
-      submissionId:
+      submission:
         type: string
       parameters:
         type: array
@@ -1177,6 +1198,16 @@ definitions:
               type: string
             name:
               type: string
+  RunIdentifierListing:
+    type: object
+    description: "List of run identifier"
+    required:
+    - runs
+    properties:
+      runs:
+        type: array
+        items:
+          type: string
   RunListing:
     type: object
     description: "Listing of run handles"

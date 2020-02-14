@@ -8,7 +8,9 @@
 
 """Helper methods to test object serialization."""
 
-from flowserv.tests.serialize import validate_parameter
+from flowserv.tests.serialize import (
+    validate_parameter, validate_run_descriptor
+)
 
 import flowserv.core.util as util
 import flowserv.model.workflow.state as st
@@ -111,7 +113,7 @@ def validate_run_handle(doc, state):
     ------
     ValueError
     """
-    labels = ['id', 'benchmarkId', 'state', 'createdAt', 'arguments']
+    labels = ['id', 'benchmark', 'state', 'createdAt', 'arguments']
     if state == st.STATE_RUNNING:
         labels.append('startedAt')
     elif state in [st.STATE_ERROR, st.STATE_CANCELED]:
@@ -125,7 +127,7 @@ def validate_run_handle(doc, state):
     util.validate_doc(
         doc=doc,
         mandatory=labels,
-        optional=['parameters', 'submissionId']
+        optional=['parameters', 'submission']
     )
     if 'parameters' in doc:
         for p in doc['parameters']:
@@ -192,7 +194,7 @@ def validate_submission_handle(doc):
         ]
     )
     for run in doc['runs']:
-        validate_run_handle(run, state=run['state'])
+        validate_run_descriptor(doc=run)
 
 
 def validate_submission_listing(doc):

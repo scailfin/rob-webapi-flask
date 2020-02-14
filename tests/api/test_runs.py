@@ -53,7 +53,7 @@ def test_runs(client):
         serialize.validate_run_handle(obj, state=obj['state'])
     assert obj['state'] == st.STATE_SUCCESS
     serialize.validate_run_handle(obj, state=st.STATE_SUCCESS)
-    benchmark_id = obj['benchmarkId']
+    benchmark_id = obj['benchmark']
     # -- Run resources --------------------------------------------------------
     resources = {r['name']: r for r in obj['resources']}
     assert len(resources) == 2
@@ -125,11 +125,28 @@ def test_runs(client):
     assert r.status_code == 200
     obj = json.loads(r.data)
     assert len(obj['runs']) == 2
+    # -- Poll runs ------------------------------------------------------------
+    url = '{}/submissions/{}/runs/poll'.format(config.API_PATH(), s_id)
+    r = client.get(url, headers=headers_1)
+    assert r.status_code == 200
+    obj = json.loads(r.data)
+    assert len(obj['runs']) == 0
+    url = '{}/submissions/{}/runs/poll?state={}'.format(
+        config.API_PATH(),
+        s_id,
+        st.STATE_CANCELED
+    )
+    r = client.get(url, headers=headers_1)
+    assert r.status_code == 200
+    obj = json.loads(r.data)
+    assert len(obj['runs']) == 1
+    # -- Error cases ----------------------------------------------------------
     # Forbidden access to run or resource
     r = client.get(url, headers=headers_2)
     assert r.status_code == 403
+    # The access to run resources is open to all
     r = client.get(res_url, headers=headers_2)
-    assert r.status_code == 403
+    assert r.status_code == 200
     # Unknown resource
     res_url = '{}/runs/{}/downloads/resources/{}'.format(
         config.API_PATH(),
@@ -151,6 +168,7 @@ def test_runs(client):
     r = client.get(url, headers=headers_1)
     obj = json.loads(r.data)
     assert len(obj['runs']) > 0
+    print(json.dumps(obj, indent=4))
     serialize.validate_submission_handle(obj)
     # -- Ranking --------------------------------------------------------------
     # Start by adding a new run

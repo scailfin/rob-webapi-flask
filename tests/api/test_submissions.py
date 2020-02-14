@@ -163,7 +163,8 @@ def test_submission_uploads(client):
     # Download the file
     url = SUBMISSION_FILE.format(config.API_PATH(), s_id, file_id)
     r = client.get(url, headers=headers_2)
-    assert r.status_code == 403
+    # Anyone can download the submission files by now
+    assert r.status_code == 200
     r = client.get(url, headers=headers_1)
     assert r.status_code == 200
     # Delete the file

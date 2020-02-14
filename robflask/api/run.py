@@ -45,7 +45,7 @@ def list_runs(submission_id):
     ------
     flowserv.core.error.UnauthenticatedAccessError
     flowserv.core.error.UnauthorizedAccessError
-    robflask.error.UnknownObjectError
+    flowserv.core.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -80,7 +80,7 @@ def start_run(submission_id):
     robflask.error.InvalidRequest
     flowserv.core.error.UnauthenticatedAccessError
     flowserv.core.error.UnauthorizedAccessError
-    robflask.error.UnknownObjectError
+    flowserv.core.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -105,6 +105,42 @@ def start_run(submission_id):
     return make_response(jsonify(r), 201)
 
 
+@bp.route('/submissions/<string:submission_id>/runs/poll', methods=['GET'])
+def poll_runs(submission_id):
+    """Get a listing of all identifier for runs that are in a given state for
+    the given submission. The user has to be a submission member in order to be
+    authorized to poll the run states. If no state is specified in the query,
+    the identifier for all active runs are returned.
+
+    Parameters
+    ----------
+    submission_id: string
+        Unique submission identifier
+
+    Returns
+    -------
+    flask.response_class
+
+    Raises
+    ------
+    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.core.error.UnauthorizedAccessError
+    flowserv.core.error.UnknownWorkflowGroupError
+    """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    token = ACCESS_TOKEN(request)
+    with service() as api:
+        # Authentication of the user from the expected api_token in the header
+        # will fail if no token is given or if the user is not logged in.
+        r = api.runs().poll_runs(
+            group_id=submission_id,
+            user_id=api.authenticate(token).identifier,
+            state=request.args.get('state')
+        )
+    return make_response(jsonify(r), 200)
+
+
 @bp.route('/runs/<string:run_id>', methods=['GET'])
 def get_run(run_id):
     """Get handle for a given run. The user has to be a member of the run
@@ -123,7 +159,7 @@ def get_run(run_id):
     ------
     flowserv.core.error.UnauthenticatedAccessError
     flowserv.core.error.UnauthorizedAccessError
-    robflask.error.UnknownObjectError
+    flowserv.core.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -156,7 +192,7 @@ def delete_run(run_id):
     ------
     flowserv.core.error.UnauthenticatedAccessError
     flowserv.core.error.UnauthorizedAccessError
-    robflask.error.UnknownObjectError
+    flowserv.core.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -189,7 +225,7 @@ def cancel_run(run_id):
     ------
     flowserv.core.error.UnauthenticatedAccessError
     flowserv.core.error.UnauthorizedAccessError
-    robflask.error.UnknownObjectError
+    flowserv.core.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -236,7 +272,7 @@ def download_result_archive(run_id):
 
     Raises
     ------
-    robflask.error.UnknownObjectError
+    flowserv.core.error.UnknownWorkflowGroupError
     """
     with service() as api:
         ioBuffer = api.runs().get_result_archive(run_id=run_id)
@@ -272,7 +308,7 @@ def download_result_file(run_id, resource_id):
     ------
     flowserv.core.error.UnauthenticatedAccessError
     flowserv.core.error.UnauthorizedAccessError
-    robflask.error.UnknownObjectError
+    flowserv.core.error.UnknownWorkflowGroupError
     """
     with service() as api:
         # Authentication of the user from the expected api_token in the header

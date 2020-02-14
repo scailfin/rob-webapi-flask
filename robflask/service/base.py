@@ -30,8 +30,8 @@ LABELS = dict({
         'WORKFLOW_ID': 'benchmark'
     },
     'RUNS': {
-        'RUN_GROUP': 'submissionId',
-        'RUN_WORKFLOW': 'benchmarkId'
+        'RUN_GROUP': 'submission',
+        'RUN_WORKFLOW': 'benchmark'
     },
     'WORKFLOWS': {
         'WORKFLOW_GROUP': 'submission',
