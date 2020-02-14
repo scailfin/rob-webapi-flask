@@ -38,6 +38,7 @@ ROUTES = [
     'runs:delete=runs/{runId}',
     'runs:get=runs/{runId}',
     'runs:cancel=runs/{runId}',
+    'runs:poll=submissions/{submissionId}/runs/poll',
     'runs:archive=runs/{runId}/downloads/archive',
     'runs:resource=runs/{runId}/downloads/resources/{resourceId}',
     'uploads:list=submissions/{submissionId}/files',
