@@ -21,24 +21,38 @@ We recommend using a `virtual environment <https://virtualenv.pypa.io/en/stable/
     # -- Activate the virtual environment
     source venv/bin/activate
 
+If you are using the Python distribution from `Anaconda <https://www.anaconda.com/>`_, you can setup an environment like this:
+
+.. code-block:: bash
+
+    # -- Create a new virtual environment
+    conda create -n rob pip
+    # -- Activate the virtual environment
+    conda activate rob
+
 
 The Flask Web API for ROB requires the ``flowserv`` package. The following steps will install all packages from the respective GitHub repositories. You can first clone the repositories and the install the packages that are contained in them:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        # Clone repositories and install locally
-        git clone git@github.com:scailfin/flowserv-core.git
-        pip install -e flowserv-core
-        git clone git@github.com:scailfin/rob-webapi-flask.git
-        pip install -e rob-webapi-flask
+    # Clone repositories and install locally
+    git clone git@github.com:scailfin/flowserv-core.git
+    pip install -e flowserv-core
+    git clone git@github.com:scailfin/rob-webapi-flask.git
+    pip install -e rob-webapi-flask
+    # Optional, install the ROB API command line interface
+    git clone git@github.com:scailfin/rob-client.git
+    pip install -e rob-client
 
 
 Alternatively, you can install the packages directly from the respective GitHub repositories:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        pip install git+https://github.com/scailfin/flowserv-core.git
-        pip install git+https://github.com/scailfin/rob-webapi-flask.git
+    pip install git+https://github.com/scailfin/flowserv-core.git
+    pip install git+https://github.com/scailfin/rob-webapi-flask.git
+    # Optional, install the ROB API command line interface
+    pip install git+https://github.com/scailfin/rob-client.git
 
 
 
