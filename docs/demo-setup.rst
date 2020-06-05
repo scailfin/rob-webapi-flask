@@ -22,14 +22,24 @@ We recommend using a `virtual environment <https://virtualenv.pypa.io/en/stable/
     source venv/bin/activate
 
 
-The Flask Web API for ROB requires the ``flowserv`` package. The following steps will install all packages from the respective GitHub repositories:
+The Flask Web API for ROB requires the ``flowserv`` package. The following steps will install all packages from the respective GitHub repositories. You can first clone the repositories and the install the packages that are contained in them:
 
     .. code-block:: bash
 
+        # Clone repositories and install locally
         git clone git@github.com:scailfin/flowserv-core.git
         pip install -e flowserv-core
         git clone git@github.com:scailfin/rob-webapi-flask.git
         pip install -e rob-webapi-flask
+
+
+Alternatively, you can install the packages directly from the respective GitHub repositories:
+
+    .. code-block:: bash
+
+        pip install git+https://github.com/scailfin/flowserv-core.git
+        pip install git+https://github.com/scailfin/rob-webapi-flask.git
+
 
 
 Configure the Environment
