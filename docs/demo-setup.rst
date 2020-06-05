@@ -26,9 +26,16 @@ The Flask Web API for ROB requires the ``robcore`` package. The following steps 
 
     .. code-block:: bash
 
-        pip install flowserv
+        # Clone repositories and install locally
+        git clone git@github.com:scailfin/flowserv-core.git
+        pip install -e flowserv-core
         git clone git@github.com:scailfin/rob-webapi-flask.git
         pip install -e rob-webapi-flask
+        
+        # Alternatively: Install directly from GitHub repository
+        pip install git+https://github.com/scailfin/flowserv-core.git
+        pip install git+https://github.com/scailfin/rob-webapi-flask.git
+
 
 
 Configure the Environment
