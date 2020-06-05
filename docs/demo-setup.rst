@@ -22,7 +22,7 @@ We recommend using a `virtual environment <https://virtualenv.pypa.io/en/stable/
     source venv/bin/activate
 
 
-The Flask Web API for ROB requires the ``robcore`` package. The following steps will install all packages from the respective GitHub repositories:
+The Flask Web API for ROB requires the ``robcore`` package. The following steps will install all packages from the respective GitHub repositories. You can first clone the repositories and the install the packages that are contained in them:
 
     .. code-block:: bash
 
@@ -32,7 +32,11 @@ The Flask Web API for ROB requires the ``robcore`` package. The following steps 
         git clone git@github.com:scailfin/rob-webapi-flask.git
         pip install -e rob-webapi-flask
         
-        # Alternatively: Install directly from GitHub repository
+        
+Alternatively, you can install the packages directly from the respective GitHub repositories:
+
+    .. code-block:: bash
+
         pip install git+https://github.com/scailfin/flowserv-core.git
         pip install git+https://github.com/scailfin/rob-webapi-flask.git
 
