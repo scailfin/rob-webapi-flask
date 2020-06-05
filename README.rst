@@ -43,19 +43,20 @@ The Reproducible Open Benchmarks platform is implemented in Python. We recommend
     source venv/bin/activate
 
 
-The Flask Web API for ROB requires the ``robcore`` package. The following steps will install all packages from the respective GitHub repositories:
+The Flask Web API for ROB requires the ``flowserv`` package. The following steps will install all packages from the respective GitHub repositories:
 
 
 .. code-block:: bash
 
-    pip install flowserv
+    git clone git@github.com:scailfin/flowserv-core.git
+    pip install -e flowserv-core
     git clone git@github.com:scailfin/rob-webapi-flask.git
     pip install -e rob-webapi-flask
 
 
 The primary configuration parameters are defined in the `ROB Configuration documentation <https://github.com/scailfin/flowserv-core/blob/master/docs/configuration.rst>`_. Two additional environment variables are defined by the Web API:
 
-- **ROB_WEBAPI_LOG**: Directory path for API logs (default: ``$ROB_API_DIR/log``)
+- **ROB_WEBAPI_LOG**: Directory path for API logs (default: ``$FLOWSERV_API_DIR/log``)
 - **ROB_WEBAPI_CONTENTLENGTH**: Maximum size of uploaded files (default: ``16MB``)
 
 If you run the Flask application from the command line in developer mode using ``flask run``, you also need to set the following environment variables:
@@ -85,7 +86,7 @@ Initialize database and base directories for the Reproducible Open Benchmarks (R
     Usage: robadm init [OPTIONS]
 
     Options:
-      -d, --dir FILE  Base directory for API files (overrides ROB_API_DIR).
+      -d, --dir FILE  Base directory for API files (overrides FLOWSERV_API_DIR).
       --help          Show this message and exit.
 
 Create and delete Benchmarks

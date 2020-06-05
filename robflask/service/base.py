@@ -62,7 +62,7 @@ class WebAPI(API):
 
         Returns
         -------
-        robcore.service.benchmark.BenchmarkService
+        robflask.service.benchmark.BenchmarkService
         """
         return BenchmarkService(
             workflow_service=self.workflows(),
@@ -90,7 +90,7 @@ class WebAPI(API):
 
         Returns
         -------
-        robcore.service.submission.SubmissionService
+        robflask.service.submission.SubmissionService
         """
         return SubmissionService(
             group_service=self.groups(),

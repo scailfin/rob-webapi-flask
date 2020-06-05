@@ -22,11 +22,12 @@ We recommend using a `virtual environment <https://virtualenv.pypa.io/en/stable/
     source venv/bin/activate
 
 
-The Flask Web API for ROB requires the ``robcore`` package. The following steps will install all packages from the respective GitHub repositories:
+The Flask Web API for ROB requires the ``flowserv`` package. The following steps will install all packages from the respective GitHub repositories:
 
     .. code-block:: bash
 
-        pip install flowserv
+        git clone git@github.com:scailfin/flowserv-core.git
+        pip install -e flowserv-core
         git clone git@github.com:scailfin/rob-webapi-flask.git
         pip install -e rob-webapi-flask
 
@@ -48,17 +49,17 @@ Configure the ROB API base directory and the workflow controller. In this setup 
 
 .. code-block:: bash
 
-    export ROB_API_DIR=./.rob
-    export ROB_ENGINE_CLASS=MultiProcessWorkflowEngine
-    export ROB_ENGINE_MODULE=robcore.controller.backend.multiproc
+    export FLOWSERV_API_DIR=./.rob
+    export FLOWSERV_BACKEND_CLASS=SerialWorkflowEngine
+    export FLOWSERV_BACKEND_MODULE=flowserv.controller.serial.engine
 
 
 ROB currently supports two database management systems. This example uses a SQLite3 database to maintain benchmark information. The database will be maintained as file ``db.sqlite`` in the API base folder.
 
 .. code-block:: bash
 
-    export ROB_DBMS=SQLITE3
-    export SQLITE_ROB_CONNECT=./.rob/db.sqlite
+    export FLOWSERV_DBMS=SQLITE3
+    export SQLITE_FLOWSERV_CONNECT=./.rob/db.sqlite
 
 
 Create the Database
@@ -68,7 +69,7 @@ The Web API includes a command line tool to initialize database and base directo
 
 .. code-block:: bash
 
-    robadm init
+    flowserv init
 
 
 
