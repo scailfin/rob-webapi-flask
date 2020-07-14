@@ -12,7 +12,7 @@ from flowserv.tests.serialize import (
     validate_parameter, validate_run_descriptor
 )
 
-import flowserv.core.util as util
+import flowserv.util as util
 import flowserv.model.workflow.state as st
 
 

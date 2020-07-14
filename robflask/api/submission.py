@@ -10,7 +10,7 @@
 
 from flask import Blueprint, jsonify, make_response, request
 
-from flowserv.core.error import UnknownUserError
+from flowserv.error import UnknownUserError
 
 from robflask.api.auth import ACCESS_TOKEN
 from robflask.api.util import jsonbody
@@ -47,7 +47,7 @@ def create_submission(benchmark_id):
     Raises
     ------
     robflask.error.InvalidRequest
-    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.error.UnauthenticatedAccessError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -77,7 +77,7 @@ def create_submission(benchmark_id):
                 benchmark_id=benchmark_id,
                 name=name,
                 parameters=parameters,
-                user_id=api.authenticate(token).identifier,
+                user_id=api.authenticate(token).user_id,
                 members=members
             )
         except UnknownUserError as ex:
@@ -103,7 +103,7 @@ def list_submission(benchmark_id):
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.error.UnauthenticatedAccessError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -113,7 +113,7 @@ def list_submission(benchmark_id):
         # will raise an exception if the user is currently not logged in.
         r = api.submissions().list_submissions(
             benchmark_id=benchmark_id,
-            user_id=api.authenticate(token).identifier
+            user_id=api.authenticate(token).user_id
         )
     return make_response(jsonify(r), 200)
 
@@ -129,7 +129,7 @@ def list_user_submission():
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.error.UnauthenticatedAccessError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -138,7 +138,7 @@ def list_user_submission():
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         r = api.submissions().list_submissions(
-            user_id=api.authenticate(token).identifier
+            user_id=api.authenticate(token).user_id
         )
     return make_response(jsonify(r), 200)
 
@@ -159,9 +159,9 @@ def delete_submission(submission_id):
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownWorkflowGroupError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -171,7 +171,7 @@ def delete_submission(submission_id):
         # will fail if no token is given or if the user is not logged in.
         api.submissions().delete_submission(
             submission_id=submission_id,
-            user_id=api.authenticate(token).identifier
+            user_id=api.authenticate(token).user_id
         )
     return make_response(jsonify(dict()), 204)
 
@@ -192,8 +192,8 @@ def get_submission(submission_id):
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnknownWorkflowGroupError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -203,7 +203,7 @@ def get_submission(submission_id):
         # will fail if no token is given or if the user is not logged in.
         r = api.submissions().get_submission(
             submission_id=submission_id,
-            user_id=api.authenticate(token).identifier
+            user_id=api.authenticate(token).user_id
         )
     return make_response(jsonify(r), 200)
 
@@ -226,10 +226,10 @@ def update_submission(submission_id):
     Raises
     ------
     robflask.error.InvalidRequest
-    flowserv.core.error.ConstraintViolationError
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownWorkflowGroupError
+    flowserv.error.ConstraintViolationError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -248,7 +248,7 @@ def update_submission(submission_id):
         # will fail if no token is given or if the user is not logged in.
         r = api.submissions().update_submission(
             submission_id=submission_id,
-            user_id=api.authenticate(token).identifier,
+            user_id=api.authenticate(token).user_id,
             name=name,
             members=members
         )

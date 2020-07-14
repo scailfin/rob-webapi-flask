@@ -12,16 +12,26 @@ ROB web API.
 
 import logging
 import os
+import sys
 
 from flask import Flask, jsonify, make_response
 from flask_cors import CORS
 from logging.handlers import RotatingFileHandler
 
-from flowserv.core.util import create_dir
+from flowserv.util import create_dir
 
-import flowserv.core.error as err
+import flowserv.error as err
 import robflask.error as rob
 import robflask.config as config
+
+
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(message)s')
+handler.setFormatter(formatter)
+root.addHandler(handler)
 
 
 def create_app(test_config=None):

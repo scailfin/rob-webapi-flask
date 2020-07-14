@@ -51,7 +51,7 @@ def get_benchmark(benchmark_id):
 
     Raises
     ------
-    flowserv.core.error.UnknownWorkflowError
+    flowserv.error.UnknownWorkflowError
     """
     # Get the access token first. Do not raise raise an error if no token is
     # present.
@@ -59,7 +59,7 @@ def get_benchmark(benchmark_id):
     with service() as api:
         # Set the user identifier depending on whether a token was given.
         if token is not None:
-            user_id = api.authenticate(token).identifier
+            user_id = api.authenticate(token).user_id
         else:
             user_id = None
         r = api.benchmarks().get_benchmark(
@@ -93,7 +93,7 @@ def get_leaderboard(benchmark_id):
 
     Raises
     ------
-    flowserv.core.error.UnknownWorkflowError
+    flowserv.error.UnknownWorkflowError
     """
     # The orderBy argument can include a list of column names. Each column name
     # may be suffixed by the sort order.
@@ -144,8 +144,8 @@ def download_benchmark_archive(benchmark_id):
 
     Raises
     ------
-    flowserv.core.error.UnknownWorkflowError
-    flowserv.core.error.UnknownResourceError
+    flowserv.error.UnknownWorkflowError
+    flowserv.error.UnknownResourceError
     """
     with service() as api:
         ioBuffer = api.benchmarks().get_result_archive(benchmark_id)
@@ -157,8 +157,10 @@ def download_benchmark_archive(benchmark_id):
     )
 
 
-@bp.route('/benchmarks/<string:benchmark_id>/downloads/resources/<string:resource_id>')
-def get_benchmark_resource(benchmark_id, resource_id):
+@bp.route(
+    '/benchmarks/<string:benchmark_id>/downloads/resources/<string:file_id>'
+)
+def get_benchmark_resource(benchmark_id, file_id):
     """Download the current resource file for a benchmark resource that was
     created during post-processing.
 
@@ -166,8 +168,8 @@ def get_benchmark_resource(benchmark_id, resource_id):
     ----------
     benchmark_id: string
         Unique benchmark identifier
-    resource_id: string
-        Unique resource identifier
+    file_id: string
+        Unique resource file identifier
 
     Returns
     -------
@@ -175,13 +177,13 @@ def get_benchmark_resource(benchmark_id, resource_id):
 
     Raises
     ------
-    flowserv.core.error.UnknownWorkflowError
-    flowserv.core.error.UnknownResourceError
+    flowserv.error.UnknownWorkflowError
+    flowserv.error.UnknownResourceError
     """
     with service() as api:
         fh = api.benchmarks().get_result_file(
             benchmark_id=benchmark_id,
-            resource_id=resource_id
+            file_id=file_id
         )
     return send_file(
         fh.filename,

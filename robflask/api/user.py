@@ -39,7 +39,7 @@ def list_users():
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.error.UnauthenticatedAccessError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -109,7 +109,7 @@ def logout_user():
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.error.UnauthenticatedAccessError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -117,7 +117,7 @@ def logout_user():
     with service() as api:
         # Logout user. Authentication will fail and raise an error if the
         # user is currently not logged in.
-        r = api.users().logout_user(user=api.authenticate(token))
+        r = api.users().logout_user(api_key=token)
     return make_response(jsonify(r), 200)
 
 
@@ -216,7 +216,7 @@ def whoami_user():
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.error.UnauthenticatedAccessError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -224,5 +224,5 @@ def whoami_user():
     # Return serialization of handle for user that is associated with access
     # token
     with service() as api:
-        r = api.users().whoami_user(api.authenticate(token))
+        r = api.users().whoami_user(api_key=token)
     return make_response(jsonify(r), 200)

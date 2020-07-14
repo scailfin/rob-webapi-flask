@@ -29,7 +29,7 @@ ROB_WEBAPI_LOG = 'ROB_WEBAPI_LOG'
 ROB_WEBAPI_CONTENTLENGTH = 'ROB_WEBAPI_CONTENTLENGTH'
 
 
-# -- Helper methods to access configutation parameters -------------------------
+# -- Helper methods to access configutation parameters ------------------------
 
 def LOG_DIR():
     """Get the logging directory for the Web API from the respective

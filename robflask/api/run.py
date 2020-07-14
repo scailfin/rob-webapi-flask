@@ -10,13 +10,13 @@
 
 from flask import Blueprint, jsonify, make_response, request, send_file
 
-from flowserv.core.error import UnknownParameterError
+from flowserv.error import UnknownParameterError
 from robflask.api.auth import ACCESS_TOKEN
 from robflask.api.util import jsonbody
 from robflask.service.base import service
 
 import flowserv.config.api as config
-import flowserv.core.util as util
+import flowserv.util as util
 import robflask.error as err
 
 
@@ -43,9 +43,9 @@ def list_runs(submission_id):
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownWorkflowGroupError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -55,7 +55,7 @@ def list_runs(submission_id):
         # will fail if no token is given or if the user is not logged in.
         r = api.runs().list_runs(
             group_id=submission_id,
-            user_id=api.authenticate(token).identifier
+            user_id=api.authenticate(token).user_id
         )
     return make_response(jsonify(r), 200)
 
@@ -78,9 +78,9 @@ def start_run(submission_id):
     Raises
     ------
     robflask.error.InvalidRequest
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownWorkflowGroupError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -96,7 +96,7 @@ def start_run(submission_id):
             r = api.runs().start_run(
                 group_id=submission_id,
                 arguments=args,
-                user_id=api.authenticate(token).identifier
+                user_id=api.authenticate(token).user_id
             )
         except UnknownParameterError as ex:
             # Convert unknown parameter errors into invalid request errors
@@ -123,9 +123,9 @@ def poll_runs(submission_id):
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownWorkflowGroupError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -135,7 +135,7 @@ def poll_runs(submission_id):
         # will fail if no token is given or if the user is not logged in.
         r = api.runs().poll_runs(
             group_id=submission_id,
-            user_id=api.authenticate(token).identifier,
+            user_id=api.authenticate(token).user_id,
             state=request.args.get('state')
         )
     return make_response(jsonify(r), 200)
@@ -157,9 +157,9 @@ def get_run(run_id):
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownWorkflowGroupError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -169,7 +169,7 @@ def get_run(run_id):
         # will fail if no token is given or if the user is not logged in.
         r = api.runs().get_run(
             run_id=run_id,
-            user_id=api.authenticate(token).identifier
+            user_id=api.authenticate(token).user_id
         )
     return make_response(jsonify(r), 200)
 
@@ -190,9 +190,9 @@ def delete_run(run_id):
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownWorkflowGroupError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -202,7 +202,7 @@ def delete_run(run_id):
         # will fail if no token is given or if the user is not logged in.
         api.runs().delete_run(
             run_id=run_id,
-            user_id=api.authenticate(token).identifier
+            user_id=api.authenticate(token).user_id
         )
     return make_response(jsonify(dict()), 204)
 
@@ -223,9 +223,9 @@ def cancel_run(run_id):
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownWorkflowGroupError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -247,7 +247,7 @@ def cancel_run(run_id):
         # will fail if no token is given or if the user is not logged in.
         r = api.runs().cancel_run(
             run_id=run_id,
-            user_id=api.authenticate(token).identifier,
+            user_id=api.authenticate(token).user_id,
             reason=reason
         )
     return make_response(jsonify(r), 200)
@@ -272,20 +272,20 @@ def download_result_archive(run_id):
 
     Raises
     ------
-    flowserv.core.error.UnknownWorkflowGroupError
+    flowserv.error.UnknownWorkflowGroupError
     """
     with service() as api:
         ioBuffer = api.runs().get_result_archive(run_id=run_id)
-    return send_file(
-        ioBuffer,
-        as_attachment=True,
-        attachment_filename='run.tar.gz',
-        mimetype='application/gzip'
-    )
+        return send_file(
+            ioBuffer,
+            as_attachment=True,
+            attachment_filename='run.tar.gz',
+            mimetype='application/gzip'
+        )
 
 
-@bp.route('/runs/<string:run_id>/downloads/resources/<string:resource_id>')
-def download_result_file(run_id, resource_id):
+@bp.route('/runs/<string:run_id>/downloads/resources/<string:file_id>')
+def download_result_file(run_id, file_id):
     """Download a resource file that was generated by a successful workflow run.
     The user has to be a member of the submission in order to be allowed to
     access files.
@@ -297,7 +297,7 @@ def download_result_file(run_id, resource_id):
     ----------
     run_id: string
         Unique run identifier
-    resource_id: string
+    file_id: string
         Unique resource file identifier
 
     Returns
@@ -306,17 +306,17 @@ def download_result_file(run_id, resource_id):
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownWorkflowGroupError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownWorkflowGroupError
     """
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
-        fh = api.runs().get_result_file(run_id=run_id, resource_id=resource_id)
-    return send_file(
-        fh.filename,
-        as_attachment=True,
-        attachment_filename=fh.name,
-        mimetype=fh.mimetype
-    )
+        fh = api.runs().get_result_file(run_id=run_id, file_id=file_id)
+        return send_file(
+            fh.filename,
+            as_attachment=True,
+            attachment_filename=fh.name,
+            mimetype=fh.mimetype
+        )

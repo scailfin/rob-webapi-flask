@@ -1,9 +1,8 @@
 """Analytics code for the adopted hello workd Demo. Reads a text file (as
-produced by the helloworld.py code) and outputs the average number of characters
-per line and the number of characters in the line with the most characters.
+produced by the helloworld.py code) and outputs the average number of
+characters per line and the number of characters in the line with the most
+characters.
 """
-
-from __future__ import absolute_import, division, print_function
 
 import argparse
 import errno
