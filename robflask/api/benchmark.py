@@ -15,6 +15,7 @@ from robflask.api.auth import ACCESS_TOKEN
 from robflask.service.base import service
 
 import flowserv.config.api as config
+import flowserv.util as util
 
 
 bp = Blueprint('benchmarks', __name__, url_prefix=config.API_PATH())
@@ -185,10 +186,14 @@ def get_benchmark_resource(benchmark_id, file_id):
             benchmark_id=benchmark_id,
             file_id=file_id
         )
+        filename = fh.filename
+        attachment_filename = fh.name
+        last_modified = util.to_datetime(fh.created_at)
+        mimetype = fh.mimetype
     return send_file(
-        fh.filename,
+        filename,
         as_attachment=True,
-        attachment_filename=fh.name,
-        last_modified=fh.last_modified,
-        mimetype=fh.mimetype
+        attachment_filename=attachment_filename,
+        last_modified=last_modified,
+        mimetype=mimetype
     )

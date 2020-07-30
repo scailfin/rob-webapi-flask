@@ -17,14 +17,7 @@ from robflask.api.util import jsonbody
 from robflask.service.base import service
 
 import flowserv.config.api as config
-import flowserv.model.parameter.base as pb
 import robflask.error as err
-
-
-"""Labels for request bodys in POST and PUT requests."""
-LABEL_MEMBERS = 'members'
-LABEL_NAME = 'name'
-LABEL_PARAMETERS = 'parameters'
 
 
 bp = Blueprint('submissions', __name__, url_prefix=config.API_PATH())
@@ -56,19 +49,13 @@ def create_submission(benchmark_id):
     # submission name and an optional list of member identifier.
     obj = jsonbody(
         request,
-        mandatory=[LABEL_NAME],
-        optional=[LABEL_MEMBERS, LABEL_PARAMETERS]
+        mandatory=['name'],
+        optional=['members']
     )
-    name = obj[LABEL_NAME]
-    members = obj[LABEL_MEMBERS] if LABEL_MEMBERS in obj else None
+    name = obj['name']
+    members = obj.get('members')
     if members is not None and not isinstance(members, list):
         raise err.InvalidRequestError('members not a list')
-    parameters = None
-    if LABEL_PARAMETERS in obj:
-        parameters = pb.create_parameter_index(
-                obj[LABEL_PARAMETERS],
-                validate=True
-            )
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -76,7 +63,6 @@ def create_submission(benchmark_id):
             r = api.submissions().create_submission(
                 benchmark_id=benchmark_id,
                 name=name,
-                parameters=parameters,
                 user_id=api.authenticate(token).user_id,
                 members=members
             )
@@ -239,10 +225,10 @@ def update_submission(submission_id):
     obj = jsonbody(
         request,
         mandatory=[],
-        optional=[LABEL_NAME, LABEL_MEMBERS]
+        optional=['name', 'members']
     )
-    name = obj[LABEL_NAME] if LABEL_NAME in obj else None
-    members = obj[LABEL_MEMBERS] if LABEL_MEMBERS in obj else None
+    name = obj.get('name')
+    members = obj.get('members')
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
