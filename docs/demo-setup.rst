@@ -39,7 +39,7 @@ The Flask Web API for ROB requires the ``flowserv`` package. All packages are in
     pip install rob-client
 
 
-Alternatively, you can also install the source code. The following steps will install all packages from the respective GitHub repositories. You can first clone the repositories and the install the packages that are contained in them:
+You can also install the packages from the source code on GitHub. The following steps will install all packages from the respective GitHub repositories. You can first clone the repositories and the install the packages that are contained in them:
 
 .. code-block:: bash
 
@@ -127,3 +127,26 @@ After setting everything up you can run the Flask Web Server using the following
 .. code-block:: bash
 
     flask run
+    
+    
+Register a new User
+===================
+
+The ROB User Interface is currently in an experimental state. Before being able to use the interface open a new termainal window (in the same working directory) as the terminal that is running the Flask server. The following steps will allow you to register a new user with ROB:
+
+.. code-block:: bash
+
+    # Activate the virutal environment
+    source venv/bin/activate
+    # Set API path variable
+    export FLOWSERV_API_PATH=/rob/api/v1
+    # Register user (follow prompts to enter user name and password)
+    rob register
+    
+ After you have registered the user, you can clone and run the ROB user interface.
+ 
+ .. code-block:: bash
+ 
+    git clone git@github.com:scailfin/rob-ui.git
+    cd rob-ui
+    npm start
