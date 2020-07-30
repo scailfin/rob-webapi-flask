@@ -2,8 +2,6 @@
 flowServ for testing purposes only.
 """
 
-from __future__ import absolute_import, division, print_function
-
 import argparse
 import errno
 import os
@@ -13,7 +11,7 @@ import time
 
 from flowserv.service.postproc.client import Runs
 
-import flowserv.core.util as util
+import flowserv.util as util
 
 
 def main(rundir, outputfile):
@@ -24,7 +22,8 @@ def main(rundir, outputfile):
     # Read avg_count for all runs in the ranking
     results = list()
     for run in Runs(rundir):
-        doc = util.read_object(filename=run.get_file('results/analytics.json'))
+        filename = run.get_file(name='results/analytics.json')
+        doc = util.read_object(filename=filename)
         results.append(doc)
         # Delay execution to allow for testing running post-processing
         # workflows

@@ -26,9 +26,7 @@ class SubmissionService(object):
         self.group_service = group_service
         self.run_service = run_service
 
-    def create_submission(
-        self, benchmark_id, name, user_id, parameters=None, members=None
-    ):
+    def create_submission(self, benchmark_id, name, user_id, members=None):
         """Create a new submission for a given benchmark. Each submission for
         the benchmark has a unique name, a submission owner, and a list of
         additional submission members.
@@ -41,8 +39,6 @@ class SubmissionService(object):
             Unique team name
         user_id: string
             Unique identifier for the submission owner
-        parameters: dict(string:flowserv.model.template.parameter.base.TemplateParameter), optional
-            Workflow template parameter declarations
         members: list(string), optional
             List of user identifier for submission members
 
@@ -52,15 +48,14 @@ class SubmissionService(object):
 
         Raises
         ------
-        flowserv.core.error.ConstraintViolationError
-        flowserv.core.error.UnknownWorkflowError
+        flowserv.error.ConstraintViolationError
+        flowserv.error.UnknownWorkflowError
         """
         # Get the default serialization for the submission handle
         doc = self.group_service.create_group(
             workflow_id=benchmark_id,
             name=name,
             user_id=user_id,
-            parameters=parameters,
             members=members
         )
         # Add empty list of run handles
@@ -81,8 +76,8 @@ class SubmissionService(object):
 
         Raises
         ------
-        flowserv.core.error.UnauthorizedAccessError
-        flowserv.core.error.UnknownWorkflowGroupError
+        flowserv.error.UnauthorizedAccessError
+        flowserv.error.UnknownWorkflowGroupError
         """
         # Raise an error if the user is not authorized to delete the submission
         # or if the submission does not exist
@@ -109,7 +104,7 @@ class SubmissionService(object):
 
         Raises
         ------
-        flowserv.core.error.UnknownWorkflowGroupError
+        flowserv.error.UnknownWorkflowGroupError
         """
         # Get the default submission handle
         doc = self.group_service.get_group(group_id=submission_id)
@@ -170,9 +165,9 @@ class SubmissionService(object):
 
         Raises
         ------
-        flowserv.core.error.ConstraintViolationError
-        flowserv.core.error.UnauthorizedAccessError
-        flowserv.core.error.UnknownSubmissionError
+        flowserv.error.ConstraintViolationError
+        flowserv.error.UnauthorizedAccessError
+        flowserv.error.UnknownSubmissionError
         """
         # Update the submission. Then retrieve the modified handle
         self.group_service.update_group(

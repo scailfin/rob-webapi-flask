@@ -1,9 +1,8 @@
 """Analytics code for the adopted hello workd Demo. Reads a text file (as
-produced by the helloworld.py code) and outputs the average number of characters
-per line and the number of characters in the line with the most characters.
+produced by the helloworld.py code) and outputs the average number of
+characters per line and the number of characters in the line with the most
+characters.
 """
-
-from __future__ import absolute_import, division, print_function
 
 import argparse
 import errno
@@ -15,7 +14,6 @@ import sys
 def main(inputfile, outputfile):
     """Write greeting for every name in a given input file to the output file.
     The optional waiting period delays the output between each input name.
-
     """
     # Count number of lines, characters, and keep track of the longest line
     max_line = ''
@@ -32,6 +30,7 @@ def main(inputfile, outputfile):
     # Create results object
     results = {
         'avg_count': total_char_count / line_count,
+        'total_count': total_char_count,
         'max_len': len(max_line),
         'max_line': max_line
     }

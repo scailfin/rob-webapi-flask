@@ -8,7 +8,7 @@
 
 """Collection of helper functions for handling web server requests."""
 
-from flowserv.core.util import validate_doc
+from flowserv.util import validate_doc
 
 import robflask.error as err
 

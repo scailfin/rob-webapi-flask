@@ -14,7 +14,6 @@ from flask import Blueprint, jsonify, make_response, request, send_file
 from werkzeug.utils import secure_filename
 
 from robflask.api.auth import ACCESS_TOKEN
-from robflask.service.base import service
 
 import flowserv.config.api as config
 import robflask.error as err
@@ -39,19 +38,20 @@ def list_files(submission_id):
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownFileError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownFileError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         r = api.uploads().list_files(
             group_id=submission_id,
-            user_id=api.authenticate(token).identifier
+            user_id=api.authenticate(token).user_id
         )
     return make_response(jsonify(r), 200)
 
@@ -73,9 +73,9 @@ def upload_file(submission_id):
     Raises
     ------
     robflask.error.InvalidRequest
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownFileError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownFileError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -88,6 +88,7 @@ def upload_file(submission_id):
             raise err.InvalidRequestError('empty file name')
         # Save uploaded file to temp directory
         filename = secure_filename(file.filename)
+        from robflask.service.base import service
         with service() as api:
             # Authentication of the user from the expected api_token in the
             # header will fail if the user is not logged in.
@@ -95,14 +96,17 @@ def upload_file(submission_id):
                 group_id=submission_id,
                 file=file,
                 name=filename,
-                user_id=api.authenticate(token).identifier
+                user_id=api.authenticate(token).user_id
             )
         return make_response(jsonify(r), 201)
     else:
         raise err.InvalidRequestError('no file request')
 
 
-@bp.route('/submissions/<string:submission_id>/files/<string:file_id>', methods=['GET'])
+@bp.route(
+    '/submissions/<string:submission_id>/files/<string:file_id>',
+    methods=['GET']
+)
 def download_file(submission_id, file_id):
     """Download a given file that was perviously uploaded for a submission.
 
@@ -122,24 +126,28 @@ def download_file(submission_id, file_id):
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownFileError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownFileError
     """
+    from robflask.service.base import service
     with service() as api:
         fh, _ = api.uploads().get_file(
             group_id=submission_id,
             file_id=file_id
         )
-    return send_file(
-        fh.filename,
-        as_attachment=True,
-        attachment_filename=fh.name,
-        mimetype=fh.mimetype
-    )
+        return send_file(
+            fh.filename,
+            as_attachment=True,
+            attachment_filename=fh.name,
+            mimetype=fh.mimetype
+        )
 
 
-@bp.route('/submissions/<string:submission_id>/files/<string:file_id>', methods=['DELETE'])
+@bp.route(
+    '/submissions/<string:submission_id>/files/<string:file_id>',
+    methods=['DELETE']
+)
 def delete_file(submission_id, file_id):
     """Delete a given file that was perviously uploaded for a submission. The
     user has to be a member of the submission in order to be allowed to delete
@@ -158,19 +166,20 @@ def delete_file(submission_id, file_id):
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
-    flowserv.core.error.UnauthorizedAccessError
-    flowserv.core.error.UnknownFileError
+    flowserv.error.UnauthenticatedAccessError
+    flowserv.error.UnauthorizedAccessError
+    flowserv.error.UnknownFileError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         api.uploads().delete_file(
             group_id=submission_id,
             file_id=file_id,
-            user_id=api.authenticate(token).identifier
+            user_id=api.authenticate(token).user_id
         )
     return make_response(jsonify(dict()), 204)

@@ -12,9 +12,9 @@ from flask import Blueprint, jsonify, make_response, request, send_file
 
 from flowserv.model.template.schema import SortColumn
 from robflask.api.auth import ACCESS_TOKEN
-from robflask.service.base import service
 
 import flowserv.config.api as config
+import flowserv.util as util
 
 
 bp = Blueprint('benchmarks', __name__, url_prefix=config.API_PATH())
@@ -30,6 +30,7 @@ def list_benchmarks():
     -------
     flask.response_class
     """
+    from robflask.service.base import service
     with service() as api:
         r = api.benchmarks().list_benchmarks()
     return make_response(jsonify(r), 200)
@@ -51,15 +52,16 @@ def get_benchmark(benchmark_id):
 
     Raises
     ------
-    flowserv.core.error.UnknownWorkflowError
+    flowserv.error.UnknownWorkflowError
     """
     # Get the access token first. Do not raise raise an error if no token is
     # present.
     token = ACCESS_TOKEN(request, raise_error=False)
+    from robflask.service.base import service
     with service() as api:
         # Set the user identifier depending on whether a token was given.
         if token is not None:
-            user_id = api.authenticate(token).identifier
+            user_id = api.authenticate(token).user_id
         else:
             user_id = None
         r = api.benchmarks().get_benchmark(
@@ -93,7 +95,7 @@ def get_leaderboard(benchmark_id):
 
     Raises
     ------
-    flowserv.core.error.UnknownWorkflowError
+    flowserv.error.UnknownWorkflowError
     """
     # The orderBy argument can include a list of column names. Each column name
     # may be suffixed by the sort order.
@@ -119,6 +121,7 @@ def get_leaderboard(benchmark_id):
         else:
             include_all = include_all.lower() == 'true'
     # Get serialization of the result ranking
+    from robflask.service.base import service
     with service() as api:
         r = api.benchmarks().get_leaderboard(
             benchmark_id,
@@ -144,9 +147,10 @@ def download_benchmark_archive(benchmark_id):
 
     Raises
     ------
-    flowserv.core.error.UnknownWorkflowError
-    flowserv.core.error.UnknownResourceError
+    flowserv.error.UnknownWorkflowError
+    flowserv.error.UnknownResourceError
     """
+    from robflask.service.base import service
     with service() as api:
         ioBuffer = api.benchmarks().get_result_archive(benchmark_id)
     return send_file(
@@ -157,8 +161,10 @@ def download_benchmark_archive(benchmark_id):
     )
 
 
-@bp.route('/benchmarks/<string:benchmark_id>/downloads/resources/<string:resource_id>')
-def get_benchmark_resource(benchmark_id, resource_id):
+@bp.route(
+    '/benchmarks/<string:benchmark_id>/downloads/resources/<string:file_id>'
+)
+def get_benchmark_resource(benchmark_id, file_id):
     """Download the current resource file for a benchmark resource that was
     created during post-processing.
 
@@ -166,8 +172,8 @@ def get_benchmark_resource(benchmark_id, resource_id):
     ----------
     benchmark_id: string
         Unique benchmark identifier
-    resource_id: string
-        Unique resource identifier
+    file_id: string
+        Unique resource file identifier
 
     Returns
     -------
@@ -175,18 +181,23 @@ def get_benchmark_resource(benchmark_id, resource_id):
 
     Raises
     ------
-    flowserv.core.error.UnknownWorkflowError
-    flowserv.core.error.UnknownResourceError
+    flowserv.error.UnknownWorkflowError
+    flowserv.error.UnknownResourceError
     """
+    from robflask.service.base import service
     with service() as api:
         fh = api.benchmarks().get_result_file(
             benchmark_id=benchmark_id,
-            resource_id=resource_id
+            file_id=file_id
         )
+        filename = fh.filename
+        attachment_filename = fh.name
+        last_modified = util.to_datetime(fh.created_at)
+        mimetype = fh.mimetype
     return send_file(
-        fh.filename,
+        filename,
         as_attachment=True,
-        attachment_filename=fh.name,
-        last_modified=fh.last_modified,
-        mimetype=fh.mimetype
+        attachment_filename=attachment_filename,
+        last_modified=last_modified,
+        mimetype=mimetype
     )

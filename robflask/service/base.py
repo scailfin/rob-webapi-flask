@@ -17,7 +17,7 @@ that are specific to ROB.
 
 from contextlib import contextmanager
 
-from flowserv.core.db.driver import DatabaseDriver
+from flowserv.model.database import DB
 from flowserv.service.api import API
 from flowserv.view.factory import DefaultView
 from robflask.service.benchmark import BenchmarkService
@@ -45,17 +45,18 @@ class WebAPI(API):
     individual components are instantiated on-demand to avoid any overhead for
     components that are not required to handle a user request.
     """
-    def __init__(self, con):
-        """Initialize the database connection and the URL factory. The URL
-        factory is kept as a class property since every API component will
-        have an instance of this class.
+    def __init__(self, session):
+        """Initialize the database connection and the serialization labels.
 
         Parameters
         ----------
-        con: DB-API 2.0 database connection
-            Connection to underlying database
+        session: sqlalchemy.orm.session.Session
+            Database session.
         """
-        super(WebAPI, self).__init__(con=con, view=DefaultView(labels=LABELS))
+        super(WebAPI, self).__init__(
+            session=session,
+            view=DefaultView(labels=LABELS)
+        )
 
     def benchmarks(self):
         """Get instance of the benchmark service component.
@@ -100,6 +101,9 @@ class WebAPI(API):
 
 # -- API constructor ----------------------------------------------------------
 
+webdb = DB(web_app=True)
+
+
 @contextmanager
 def service():
     """The local service function is a context manager for an open database
@@ -111,6 +115,5 @@ def service():
     -------
     robflask.service.API
     """
-    con = DatabaseDriver.get_connector().connect()
-    yield WebAPI(con)
-    con.close()
+    with webdb.session() as session:
+        yield WebAPI(session=session)

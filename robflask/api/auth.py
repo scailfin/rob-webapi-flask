@@ -8,7 +8,7 @@
 
 """Collection of helper functions for handling web server requests."""
 
-from flowserv.core.error import UnauthenticatedAccessError
+from flowserv.error import UnauthenticatedAccessError
 from flowserv.service.api import HEADER_TOKEN
 
 

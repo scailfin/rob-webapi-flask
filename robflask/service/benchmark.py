@@ -45,7 +45,7 @@ class BenchmarkService(object):
 
         Raises
         ------
-        flowserv.core.error.UnknownBenchmarkError
+        flowserv.error.UnknownBenchmarkError
         """
         # Get the default handle first
         doc = self.workflow_service.get_workflow(workflow_id=benchmark_id)
@@ -79,7 +79,7 @@ class BenchmarkService(object):
 
         Raises
         ------
-        flowserv.core.error.UnknownWorkflowError
+        flowserv.error.UnknownWorkflowError
         """
         return self.workflow_service.get_ranking(
             workflow_id=benchmark_id,
@@ -104,12 +104,14 @@ class BenchmarkService(object):
 
         Raises
         ------
-        flowserv.core.error.UnknownWorkflowError
-        flowserv.core.error.UnknownResourceError
+        flowserv.error.UnknownWorkflowError
+        flowserv.error.UnknownResourceError
         """
-        return self.workflow_service.get_result_archive(workflow_id=benchmark_id)
+        return self.workflow_service.get_result_archive(
+            workflow_id=benchmark_id
+        )
 
-    def get_result_file(self, benchmark_id, resource_id):
+    def get_result_file(self, benchmark_id, file_id):
         """Get file handle for a resource file that was generated as the result
         of a successful benchmark post-processing run.
 
@@ -117,21 +119,21 @@ class BenchmarkService(object):
         ----------
         benchmark_id: string
             Unique benchmark identifier
-        resource_id: string
+        file_id: string
             Unique resource file identifier
 
         Returns
         -------
-        flowserv.core.files.FileHandle
+        flowserv.model.base.FileHandle
 
         Raises
         ------
-        flowserv.core.error.UnknownWorkflowError
-        flowserv.core.error.UnknownResourceError
+        flowserv.error.UnknownWorkflowError
+        flowserv.error.UnknownResourceError
         """
         return self.workflow_service.get_result_file(
             workflow_id=benchmark_id,
-            resource_id=resource_id
+            file_id=file_id
         )
 
     def list_benchmarks(self):

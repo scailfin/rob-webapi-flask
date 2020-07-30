@@ -12,7 +12,6 @@ from flask import Blueprint, jsonify, make_response, request
 
 from robflask.api.auth import ACCESS_TOKEN
 from robflask.api.util import jsonbody
-from robflask.service.base import service
 
 import flowserv.config.api as config
 
@@ -39,11 +38,12 @@ def list_users():
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.error.UnauthenticatedAccessError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authenticate the user from the api_token in the header. This
         # will raise an exception if the user is currently not logged in.
@@ -69,6 +69,7 @@ def activate_user():
     obj = jsonbody(request, mandatory=[LABEL_ID])
     user_id = obj[LABEL_ID]
     # Activate user in the database and return the serialized user handle
+    from robflask.service.base import service
     with service() as api:
         r = api.users().activate_user(user_id=user_id)
     return make_response(jsonify(r), 200)
@@ -93,6 +94,7 @@ def login_user():
     user = obj[LABEL_NAME]
     passwd = obj[LABEL_PASSWORD]
     # Register user in the database and return the serialized user handle
+    from robflask.service.base import service
     with service() as api:
         r = api.users().login_user(username=user, password=passwd)
     return make_response(jsonify(r), 200)
@@ -109,15 +111,16 @@ def logout_user():
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.error.UnauthenticatedAccessError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Logout user. Authentication will fail and raise an error if the
         # user is currently not logged in.
-        r = api.users().logout_user(user=api.authenticate(token))
+        r = api.users().logout_user(api_key=token)
     return make_response(jsonify(r), 200)
 
 
@@ -152,6 +155,7 @@ def register_user():
     else:
         verify = True
     # Register user in the database and return the serialized user handle
+    from robflask.service.base import service
     with service() as api:
         r = api.users().register_user(
             username=user,
@@ -174,6 +178,7 @@ def request_password_reset():
     obj = jsonbody(request, mandatory=[LABEL_NAME])
     user = obj[LABEL_NAME]
     # Register user in the database and return the serialized user handle
+    from robflask.service.base import service
     with service() as api:
         r = api.users().request_password_reset(username=user)
     return make_response(jsonify(r), 200)
@@ -200,6 +205,7 @@ def reset_password():
     req_id = obj[LABEL_REQUEST_ID]
     passwd = obj[LABEL_PASSWORD]
     # Reset the password for the user that is identified by the request id
+    from robflask.service.base import service
     with service() as api:
         r = api.users().reset_password(request_id=req_id, password=passwd)
     return make_response(jsonify(r), 200)
@@ -216,13 +222,14 @@ def whoami_user():
 
     Raises
     ------
-    flowserv.core.error.UnauthenticatedAccessError
+    flowserv.error.UnauthenticatedAccessError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
     # Return serialization of handle for user that is associated with access
     # token
+    from robflask.service.base import service
     with service() as api:
-        r = api.users().whoami_user(api.authenticate(token))
+        r = api.users().whoami_user(api_key=token)
     return make_response(jsonify(r), 200)

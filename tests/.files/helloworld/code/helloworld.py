@@ -2,8 +2,6 @@
 intend is for testing of the simple multi process backend.
 """
 
-from __future__ import absolute_import, print_function
-
 import argparse
 import errno
 import os
@@ -46,7 +44,12 @@ if __name__ == '__main__':
     parser.add_argument("-i", "--inputfile", required=True)
     parser.add_argument("-o", "--outputfile", required=True)
     parser.add_argument("-g", "--greeting", default='Hello', required=False)
-    parser.add_argument("-s", "--sleeptime", default=1.0, type=float, required=False)
+    parser.add_argument(
+        "-s", "--sleeptime",
+        default=1.0,
+        type=float,
+        required=False
+    )
 
     parsed_args = parser.parse_args(args)
 
