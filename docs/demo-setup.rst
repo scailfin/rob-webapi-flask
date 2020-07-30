@@ -2,7 +2,7 @@
 Flask Web API - Demo Setup
 ==========================
 
-The following step show an example setup of the Web API to run the Reproducible Open Benchmarks for Data Analysis Platform (ROB) Demo benchmarks `Hello World Demo <https://github.com/scailfin/rob-demo-hello-world>`_ and `Number Predictor Demo <https://github.com/scailfin/rob-demo-predictor>`_.
+The following step show an example setup of the Web API to run the Reproducible Open Benchmarks for Data Analysis Platform (ROB) Demo benchmarks `Hello World Demo <https://github.com/scailfin/rob-demo-hello-world>`_.
 
 
 There is a `screen recording of the setup steps <https://asciinema.org/a/285082>`_ available online.
@@ -31,7 +31,15 @@ If you are using the Python distribution from `Anaconda <https://www.anaconda.co
     conda activate rob
 
 
-The Flask Web API for ROB requires the ``flowserv`` package. The following steps will install all packages from the respective GitHub repositories. You can first clone the repositories and the install the packages that are contained in them:
+The Flask Web API for ROB requires the ``flowserv`` package. All packages are installable using ``pip``:
+
+..code-block:: bash
+
+    pip install rob-flask
+    pip install rob-client
+
+
+Alternatively, you can also install the source code. The following steps will install all packages from the respective GitHub repositories. You can first clone the repositories and the install the packages that are contained in them:
 
 .. code-block:: bash
 
@@ -43,6 +51,8 @@ The Flask Web API for ROB requires the ``flowserv`` package. The following steps
     # Optional, install the ROB API command line interface
     git clone git@github.com:scailfin/rob-client.git
     pip install -e rob-client
+    
+
 
 
 Alternatively, you can install the packages directly from the respective GitHub repositories:
@@ -74,16 +84,17 @@ Configure the ROB API base directory and the workflow controller. In this setup 
 .. code-block:: bash
 
     export FLOWSERV_API_DIR=./.rob
+    export FLOWSERV_API_PATH=/rob/api/v1
     export FLOWSERV_BACKEND_CLASS=SerialWorkflowEngine
     export FLOWSERV_BACKEND_MODULE=flowserv.controller.serial.engine
 
 
-ROB currently supports two database management systems. This example uses a SQLite3 database to maintain benchmark information. The database will be maintained as file ``db.sqlite`` in the API base folder.
+ROB currently supports two database management systems. This example uses a SQLite3 database to maintain benchmark information. The database will be maintained as file ``db.sqlite`` in the current working directory.
 
 .. code-block:: bash
 
-    export FLOWSERV_DBMS=SQLITE3
-    export SQLITE_FLOWSERV_CONNECT=./.rob/db.sqlite
+    export FLOWSERV_DATABASE=sqlite:///./db.sqlite
+    
 
 
 Create the Database
@@ -95,6 +106,17 @@ The Web API includes a command line tool to initialize database and base directo
 
     flowserv init
 
+
+Install the Hello World Demo
+============================
+
+The *Hello World Demo* can be installed from the **flowServ** workflow repository using the following command:
+
+..code-block:: bash
+
+    flowserv install helloworld
+    
+Note: You can use the command ``flowserv repository`` to get a complete list of all available workflow templates.
 
 
 Run the Web Server
