@@ -33,7 +33,7 @@ If you are using the Python distribution from `Anaconda <https://www.anaconda.co
 
 The Flask Web API for ROB requires the ``flowserv`` package. All packages are installable using ``pip``:
 
-..code-block:: bash
+.. code-block:: bash
 
     pip install rob-flask
     pip install rob-client
