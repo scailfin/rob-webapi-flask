@@ -12,6 +12,7 @@ import json
 import os
 import time
 
+from flowserv.service.run.argument import FILE
 from robflask.tests.submission import create_submission, upload_file
 
 import flowserv.config.api as config
@@ -33,7 +34,7 @@ def test_runs(client):
     url = '{}/submissions/{}/runs'.format(config.API_PATH(), s_id)
     body = {
         'arguments': [
-            {'id': 'names', 'value': file_id},
+            {'id': 'names', 'value': FILE(file_id)},
             {'id': 'greeting', 'value': 'Hi'}
         ]
     }
@@ -55,7 +56,7 @@ def test_runs(client):
     serialize.validate_run_handle(obj, state=st.STATE_SUCCESS)
     benchmark_id = obj['benchmark']
     # -- Run resources --------------------------------------------------------
-    resources = {r['name']: r for r in obj['resources']}
+    resources = {r['name']: r for r in obj['files']}
     assert len(resources) == 2
     assert 'results/greetings.txt' in resources
     assert 'results/analytics.json' in resources
@@ -100,7 +101,7 @@ def test_runs(client):
     assert r.status_code == 200
     assert 'results.tar.gz' in r.headers['Content-Disposition']
     url = '{}/benchmarks/{}/downloads/resources/{}'
-    resource_id = b['postproc']['resources'][0]['id']
+    resource_id = b['postproc']['files'][0]['id']
     url = url.format(config.API_PATH(), benchmark_id, resource_id)
     r = client.get(url)
     assert r.status_code == 200
@@ -168,14 +169,13 @@ def test_runs(client):
     r = client.get(url, headers=headers_1)
     obj = json.loads(r.data)
     assert len(obj['runs']) > 0
-    print(json.dumps(obj, indent=4))
     serialize.validate_submission_handle(obj)
     # -- Ranking --------------------------------------------------------------
     # Start by adding a new run
     url = '{}/submissions/{}/runs'.format(config.API_PATH(), s_id)
     body = {
         'arguments': [
-            {'id': 'names', 'value': file_id},
+            {'id': 'names', 'value': FILE(file_id)},
             {'id': 'greeting', 'value': 'Hi'}
         ]
     }

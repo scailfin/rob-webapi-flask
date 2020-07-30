@@ -31,8 +31,8 @@ def validate_benchmark_handle(doc):
     ValueError
     """
     mandatory = ['id', 'name', 'parameters', 'submissions']
-    optional = ['description', 'instructions', 'postproc', 'modules']
-    util.validate_doc(doc=doc, mandatory=mandatory, optional=optional)
+    optnl = ['description', 'instructions', 'postproc', 'modules', 'outputs']
+    util.validate_doc(doc=doc, mandatory=mandatory, optional=optnl)
     # Validate the post-processing run handle if present
     if 'postproc' in doc:
         postproc = doc['postproc']
@@ -77,7 +77,7 @@ def validate_ranking(doc):
     util.validate_doc(
         doc=doc,
         mandatory=['schema', 'ranking'],
-        optional=['postproc']
+        optional=['postproc', 'outputs']
     )
     # Schema columns
     for col in doc['schema']:
@@ -123,7 +123,7 @@ def validate_run_handle(doc, state):
     elif state == st.STATE_SUCCESS:
         labels.append('startedAt')
         labels.append('finishedAt')
-        labels.append('resources')
+        labels.append('files')
     util.validate_doc(
         doc=doc,
         mandatory=labels,
@@ -140,7 +140,7 @@ def validate_run_handle(doc, state):
         keys.append('self:delete')
     if state == st.STATE_SUCCESS:
         keys.append('results')
-        for r in doc['resources']:
+        for r in doc['files']:
             util.validate_doc(doc=r, mandatory=['id', 'name'])
 
 

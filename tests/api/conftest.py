@@ -11,19 +11,12 @@ https://github.com/pallets/flask/tree/master/examples/tutorial/tests
 """
 
 import os
-import shutil
-import tempfile
 
 import pytest
 
 from flowserv.config.api import FLOWSERV_API_BASEDIR
-from flowserv.config.db import FLOWSERV_DB_ID
-from flowserv.config.install import DB
-from robflask.api import create_app
-from robflask.service.base import service
+from flowserv.config.database import FLOWSERV_DB
 
-import flowserv.core.db.driver as driver
-import flowserv.core.db.sqlite as sqlite
 import robflask.config as config
 
 
@@ -32,29 +25,26 @@ BENCHMARK_DIR = os.path.join(DIR, '../.files/helloworld')
 
 
 @pytest.fixture
-def client():
+def client(tmpdir):
     """Create the app client."""
     # Create a temporary file to use as the database file
-    basedir = tempfile.mkdtemp()
-    db_filename = os.path.join(basedir, 'db.sqlite')
-    # The test database uses SQLite
-    os.environ[FLOWSERV_API_BASEDIR] = basedir
-    os.environ[FLOWSERV_DB_ID] = driver.SQLITE[0]
-    os.environ[sqlite.SQLITE_FLOWSERV_CONNECT] = db_filename
-    DB.init()
+    os.environ[FLOWSERV_DB] = 'sqlite:///{}/flowserv.db'.format(str(tmpdir))
+    os.environ[FLOWSERV_API_BASEDIR] = str(tmpdir)
+    from flowserv.service.database import database
+    database.init()
     # Create a single benchmark
+    from robflask.service.base import service
     with service() as api:
         # Get the benchmark repository instance from the API
         api.workflows().create_workflow(
             name='Hello World',
             description='Hello World Demo',
-            sourcedir=BENCHMARK_DIR
+            source=BENCHMARK_DIR
         )
     # Set the maximum upload file size to 1KB
     os.environ[config.ROB_WEBAPI_CONTENTLENGTH] = '1024'
     # Create the Flask app
+    from robflask.api import create_app
     app = create_app({'TESTING': True})
     with app.test_client() as client:
         yield client
-    # Clean up deletes the database file
-    shutil.rmtree(basedir)

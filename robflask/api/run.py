@@ -13,7 +13,6 @@ from flask import Blueprint, jsonify, make_response, request, send_file
 from flowserv.error import UnknownParameterError
 from robflask.api.auth import ACCESS_TOKEN
 from robflask.api.util import jsonbody
-from robflask.service.base import service
 
 import flowserv.config.api as config
 import flowserv.util as util
@@ -50,6 +49,7 @@ def list_runs(submission_id):
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -89,6 +89,7 @@ def start_run(submission_id):
     # optional list of workflow arguments.
     obj = jsonbody(request, optional=[LABEL_ARGUMENTS])
     args = obj[LABEL_ARGUMENTS] if LABEL_ARGUMENTS in obj else dict()
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -130,6 +131,7 @@ def poll_runs(submission_id):
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -164,6 +166,7 @@ def get_run(run_id):
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -197,6 +200,7 @@ def delete_run(run_id):
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -242,6 +246,7 @@ def cancel_run(run_id):
             reason = obj['reason']
         except ValueError as ex:
             raise err.InvalidRequestError(str(ex))
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -274,6 +279,7 @@ def download_result_archive(run_id):
     ------
     flowserv.error.UnknownWorkflowGroupError
     """
+    from robflask.service.base import service
     with service() as api:
         ioBuffer = api.runs().get_result_archive(run_id=run_id)
         return send_file(
@@ -310,6 +316,7 @@ def download_result_file(run_id, file_id):
     flowserv.error.UnauthorizedAccessError
     flowserv.error.UnknownWorkflowGroupError
     """
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.

@@ -14,7 +14,6 @@ from flowserv.error import UnknownUserError
 
 from robflask.api.auth import ACCESS_TOKEN
 from robflask.api.util import jsonbody
-from robflask.service.base import service
 
 import flowserv.config.api as config
 import robflask.error as err
@@ -56,6 +55,7 @@ def create_submission(benchmark_id):
     members = obj.get('members')
     if members is not None and not isinstance(members, list):
         raise err.InvalidRequestError('members not a list')
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -94,6 +94,7 @@ def list_submission(benchmark_id):
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authenticate the user from the api_token in the header. This
         # will raise an exception if the user is currently not logged in.
@@ -120,6 +121,7 @@ def list_user_submission():
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -152,6 +154,7 @@ def delete_submission(submission_id):
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -184,6 +187,7 @@ def get_submission(submission_id):
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -229,6 +233,7 @@ def update_submission(submission_id):
     )
     name = obj.get('name')
     members = obj.get('members')
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.

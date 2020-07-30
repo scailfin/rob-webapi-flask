@@ -11,7 +11,6 @@
 from flask import Blueprint, jsonify, request
 
 from robflask.api.auth import ACCESS_TOKEN
-from robflask.service.base import service
 
 import flowserv.config.api as config
 
@@ -61,6 +60,7 @@ def service_descriptor():
     """Get the API service descriptor."""
     # If the request contains an access token we validate that the token is
     # still active
+    from robflask.service.base import service
     with service() as api:
         # The access token is optional for the service descriptor. Make sure
         # not to raise an error if no token is present.

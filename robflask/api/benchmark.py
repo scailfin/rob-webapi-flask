@@ -12,7 +12,6 @@ from flask import Blueprint, jsonify, make_response, request, send_file
 
 from flowserv.model.template.schema import SortColumn
 from robflask.api.auth import ACCESS_TOKEN
-from robflask.service.base import service
 
 import flowserv.config.api as config
 import flowserv.util as util
@@ -31,6 +30,7 @@ def list_benchmarks():
     -------
     flask.response_class
     """
+    from robflask.service.base import service
     with service() as api:
         r = api.benchmarks().list_benchmarks()
     return make_response(jsonify(r), 200)
@@ -57,6 +57,7 @@ def get_benchmark(benchmark_id):
     # Get the access token first. Do not raise raise an error if no token is
     # present.
     token = ACCESS_TOKEN(request, raise_error=False)
+    from robflask.service.base import service
     with service() as api:
         # Set the user identifier depending on whether a token was given.
         if token is not None:
@@ -120,6 +121,7 @@ def get_leaderboard(benchmark_id):
         else:
             include_all = include_all.lower() == 'true'
     # Get serialization of the result ranking
+    from robflask.service.base import service
     with service() as api:
         r = api.benchmarks().get_leaderboard(
             benchmark_id,
@@ -148,6 +150,7 @@ def download_benchmark_archive(benchmark_id):
     flowserv.error.UnknownWorkflowError
     flowserv.error.UnknownResourceError
     """
+    from robflask.service.base import service
     with service() as api:
         ioBuffer = api.benchmarks().get_result_archive(benchmark_id)
     return send_file(
@@ -181,6 +184,7 @@ def get_benchmark_resource(benchmark_id, file_id):
     flowserv.error.UnknownWorkflowError
     flowserv.error.UnknownResourceError
     """
+    from robflask.service.base import service
     with service() as api:
         fh = api.benchmarks().get_result_file(
             benchmark_id=benchmark_id,

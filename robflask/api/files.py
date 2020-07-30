@@ -14,7 +14,6 @@ from flask import Blueprint, jsonify, make_response, request, send_file
 from werkzeug.utils import secure_filename
 
 from robflask.api.auth import ACCESS_TOKEN
-from robflask.service.base import service
 
 import flowserv.config.api as config
 import robflask.error as err
@@ -46,6 +45,7 @@ def list_files(submission_id):
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
@@ -88,6 +88,7 @@ def upload_file(submission_id):
             raise err.InvalidRequestError('empty file name')
         # Save uploaded file to temp directory
         filename = secure_filename(file.filename)
+        from robflask.service.base import service
         with service() as api:
             # Authentication of the user from the expected api_token in the
             # header will fail if the user is not logged in.
@@ -129,6 +130,7 @@ def download_file(submission_id, file_id):
     flowserv.error.UnauthorizedAccessError
     flowserv.error.UnknownFileError
     """
+    from robflask.service.base import service
     with service() as api:
         fh, _ = api.uploads().get_file(
             group_id=submission_id,
@@ -171,6 +173,7 @@ def delete_file(submission_id, file_id):
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
     token = ACCESS_TOKEN(request)
+    from robflask.service.base import service
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
