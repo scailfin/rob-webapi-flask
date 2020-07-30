@@ -112,7 +112,7 @@ Install the Hello World Demo
 
 The *Hello World Demo* can be installed from the **flowServ** workflow repository using the following command:
 
-..code-block:: bash
+.. code-block:: bash
 
     flowserv install helloworld
     
