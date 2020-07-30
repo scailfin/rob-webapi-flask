@@ -5,6 +5,6 @@
 * Initial Version
 
 
-### 0.2.0 - 2020-07-??
+### 0.2.0 - 2020-07-30
 
 * Adjust to flowserv-core 0.2.0 with SQLAlchemy as ORM for the database model.
