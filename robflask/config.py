@@ -23,6 +23,9 @@ from flowserv.config.api import API_BASEDIR
 """Environment variables that contain configuration parameters for the Web
 API.
 """
+# Path to the optional build files for the ROB user-interface to be served
+# by the Flask app.
+ROB_UI_PATH = 'ROB_UI_PATH'
 # Directory path for API logs
 ROB_WEBAPI_LOG = 'ROB_WEBAPI_LOG'
 # Maximum size of uploaded files (in bytes)

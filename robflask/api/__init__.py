@@ -175,5 +175,9 @@ def create_app(test_config=None):
     # User Service
     import robflask.api.user as users
     app.register_blueprint(users.bp)
+    # Include the ROB UI blueprint only if the environment variable is set.
+    if os.environ.get(config.ROB_UI_PATH) is not None:
+        import robflask.api.ui as robui
+        app.register_blueprint(robui.bp)
     # Return the app
     return app
