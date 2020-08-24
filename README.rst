@@ -83,11 +83,14 @@ Initialize database and base directories for the Reproducible Open Benchmarks (R
 
 .. code-block:: console
 
-    Usage: robadm init [OPTIONS]
+    Usage: flowserv init [OPTIONS]
+
+      Initialize database and base directories for the API.
 
     Options:
-      -d, --dir FILE  Base directory for API files (overrides FLOWSERV_API_DIR).
-      --help          Show this message and exit.
+      -f, --force  Create database without confirmation
+      --help       Show this message and exit.
+
 
 Create and delete Benchmarks
 ----------------------------
@@ -96,15 +99,18 @@ Create a new benchmark.
 
 .. code-block:: console
 
-    Usage: robadm benchmarks create [OPTIONS]
+    Usage: flowserv workflows create [OPTIONS] TEMPLATE
+
+      Create a new workflow.
 
     Options:
-      -n, --name TEXT          Unique benchmark name.  [required]
-      -d, --description TEXT   Short benchmark description.
-      -i, --instructions FILE  File containing instructions for participants.
-      -s, --src DIRECTORY      Benchmark template directory.
-      -u, --url TEXT           Benchmark template Git repository URL.
-      -f, --specfile FILE      Optional path to benchmark specification file.
+      -n, --name TEXT          Unique workflow name.
+      -d, --description TEXT   Short workflow description.
+      -i, --instructions PATH  File containing instructions for running the
+                               workflow.
+
+      -f, --specfile FILE      Optional path to workflow specification file.
+      -m, --manifest FILE      Optional path to workflow manifest file.
       --help                   Show this message and exit.
 
 
@@ -112,7 +118,10 @@ Delete a given benchmark.
 
 .. code-block:: console
 
-    Usage: robadm benchmarks delete [OPTIONS] IDENTIFIER
+    Usage: flowserv workflows delete [OPTIONS] IDENTIFIER
+
+      Delete a given workflow.
 
     Options:
       --help  Show this message and exit.
+  
