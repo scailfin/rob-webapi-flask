@@ -1197,7 +1197,7 @@ definitions:
         type: array
         items:
           type: string
-      resources:
+      files:
         type: array
         items:
           type: object
@@ -1209,6 +1209,14 @@ definitions:
               type: string
             name:
               type: string
+            title:
+              type: string
+            caption:
+              type: string
+            widget:
+              type: string
+            format:
+              type: object
   RunIdentifierListing:
     type: object
     description: "List of run identifier"
