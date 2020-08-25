@@ -13,3 +13,9 @@
 ### 0.2.1 - 2020-08-01
 
 * Add option to serve development ROB UI from static build
+
+
+### 0.3.0 - 2020-08-25
+
+* Change flowser-core dependency to 0.3.0
+* Download results that are directories as tar file
