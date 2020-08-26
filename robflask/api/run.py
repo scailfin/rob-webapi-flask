@@ -326,8 +326,11 @@ def download_result_file(run_id, file_id):
         # if the result file is a directory create an archive and return the
         # archive as the result.
         if os.path.isdir(fh.filename):
-            basename = os.path.basename(fh.filename)
-            ioBuffer = util.archive_files([(fh.filename, basename)])
+            pathname = fh.name
+            basename = None
+            while pathname and not basename:
+                pathname, basename = os.path.split(pathname)
+            ioBuffer = util.archive_files([(fh.filename, '')])
             return send_file(
                 ioBuffer,
                 as_attachment=True,

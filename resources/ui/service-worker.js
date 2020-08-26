@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/rob-ui/precache-manifest.fe88cf62e251f91d691369059ab17360.js"
+  "/rob-ui/precache-manifest.3946d08c1f412459bca8f706fc0b5f2c.js"
 );
 
 self.addEventListener('message', (event) => {
