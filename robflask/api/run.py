@@ -8,6 +8,8 @@
 
 """Blueprint for submission runs and run results."""
 
+import os
+
 from flask import Blueprint, jsonify, make_response, request, send_file
 
 from flowserv.error import UnknownParameterError
@@ -321,9 +323,24 @@ def download_result_file(run_id, file_id):
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         fh = api.runs().get_result_file(run_id=run_id, file_id=file_id)
-        return send_file(
-            fh.filename,
-            as_attachment=True,
-            attachment_filename=fh.name,
-            mimetype=fh.mimetype
-        )
+        # if the result file is a directory create an archive and return the
+        # archive as the result.
+        if os.path.isdir(fh.filename):
+            pathname = fh.name
+            basename = None
+            while pathname and not basename:
+                pathname, basename = os.path.split(pathname)
+            ioBuffer = util.archive_files([(fh.filename, '')])
+            return send_file(
+                ioBuffer,
+                as_attachment=True,
+                attachment_filename='{}.tar.gz'.format(basename),
+                mimetype='application/gzip'
+            )
+        else:
+            return send_file(
+                fh.filename,
+                as_attachment=True,
+                attachment_filename=fh.name,
+                mimetype=fh.mimetype
+            )
