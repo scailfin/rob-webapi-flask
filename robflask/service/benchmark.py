@@ -124,7 +124,7 @@ class BenchmarkService(object):
 
         Returns
         -------
-        flowserv.model.base.FileHandle
+        (flowserv.model.base.RunFile, string or io.BytesIO)
 
         Raises
         ------

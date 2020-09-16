@@ -52,6 +52,7 @@ def test_runs(client):
         assert r.status_code == 200
         obj = json.loads(r.data)
         serialize.validate_run_handle(obj, state=obj['state'])
+    print(json.dumps(obj, indent=4))
     assert obj['state'] == st.STATE_SUCCESS
     serialize.validate_run_handle(obj, state=st.STATE_SUCCESS)
     benchmark_id = obj['benchmark']

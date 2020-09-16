@@ -18,8 +18,6 @@ from flask import Flask, jsonify, make_response
 from flask_cors import CORS
 from logging.handlers import RotatingFileHandler
 
-from flowserv.util import create_dir
-
 import flowserv.error as err
 import robflask.error as rob
 import robflask.config as config
@@ -48,7 +46,8 @@ def create_app(test_config=None):
     # Initialize error logging
     # --------------------------------------------------------------------------
     # Use rotating file handler for server logs
-    logdir = create_dir(config.LOG_DIR())
+    logdir = config.LOG_DIR()
+    os.makedirs(config.LOG_DIR(), exist_ok=True)
     file_handler = RotatingFileHandler(
         os.path.join(logdir, 'webapi.log'),
         maxBytes=1024 * 1024 * 100,
