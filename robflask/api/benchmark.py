@@ -186,16 +186,15 @@ def get_benchmark_resource(benchmark_id, file_id):
     """
     from robflask.service.base import service
     with service() as api:
-        fh = api.benchmarks().get_result_file(
+        fh, file = api.benchmarks().get_result_file(
             benchmark_id=benchmark_id,
             file_id=file_id
         )
-        filename = fh.filename
         attachment_filename = fh.name
         last_modified = util.to_datetime(fh.created_at)
-        mimetype = fh.mimetype
+        mimetype = fh.mime_type
     return send_file(
-        filename,
+        file,
         as_attachment=True,
         attachment_filename=attachment_filename,
         last_modified=last_modified,

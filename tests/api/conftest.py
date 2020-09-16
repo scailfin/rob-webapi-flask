@@ -41,6 +41,12 @@ def client(tmpdir):
             description='Hello World Demo',
             source=BENCHMARK_DIR
         )
+        # Need to set the file store in the engine and the backend to the new
+        # instance that refers to the current tmpdir.
+        from flowserv.service.files import get_filestore
+        api.engine.fs = get_filestore()
+        from flowserv.service.backend import backend
+        backend.fs = api.engine.fs
     # Set the maximum upload file size to 1KB
     os.environ[config.ROB_WEBAPI_CONTENTLENGTH] = '1024'
     # Create the Flask app
