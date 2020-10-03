@@ -30,3 +30,4 @@
 ### 0.5.0 - 2020-10-03
 
 * Change flowser-core dependency to 0.5.1
+* Adjust for new file objects used by flowserv
