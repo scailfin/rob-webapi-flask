@@ -22,6 +22,7 @@ import robflask.config as config
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 BENCHMARK_DIR = os.path.join(DIR, '../.files/helloworld')
+ROB_UI_PATH = os.path.join(DIR, '../../resources/ui')
 
 
 @pytest.fixture
@@ -49,6 +50,8 @@ def client(tmpdir):
         backend.fs = api.engine.fs
     # Set the maximum upload file size to 1KB
     os.environ[config.ROB_WEBAPI_CONTENTLENGTH] = '1024'
+    # Set the UI path.
+    os.environ[config.ROB_UI_PATH] = ROB_UI_PATH
     # Create the Flask app
     from robflask.api import create_app
     app = create_app({'TESTING': True})

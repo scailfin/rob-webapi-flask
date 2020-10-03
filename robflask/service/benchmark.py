@@ -100,7 +100,7 @@ class BenchmarkService(object):
 
         Returns
         -------
-        io.BytesIO
+        flowserv.model.files.base.FileObject
 
         Raises
         ------
@@ -124,7 +124,7 @@ class BenchmarkService(object):
 
         Returns
         -------
-        (flowserv.model.base.RunFile, string or io.BytesIO)
+        flowserv.model.files.base.FileObject
 
         Raises
         ------

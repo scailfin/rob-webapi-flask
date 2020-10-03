@@ -21,7 +21,13 @@
 * Download results that are directories as tar file
 
 
-### 0.3.0 - 2020-09-16
+### 0.4.0 - 2020-09-16
 
 * Change flowser-core dependency to 0.4.0
 * Adjust file uploads and downloads to flowserv's API changes
+
+
+### 0.5.0 - 2020-10-03
+
+* Change flowser-core dependency to 0.5.1
+* Adjust for new file objects used by flowserv

@@ -195,9 +195,11 @@ def test_runs(client):
     obj = json.loads(r.data)
     serialize.validate_ranking(obj)
     assert len(obj['ranking']) == 1
-    url = url + '?orderBy=avg_count,max_len:asc,max_line:desc&includeAll'
-    r = client.get(url)
-    assert r.status_code == 200
-    obj = json.loads(r.data)
-    serialize.validate_ranking(obj)
-    assert len(obj['ranking']) == 2
+    for include_all in ['', '=true']:
+        query = '?orderBy=avg_count,max_len:asc,max_line:desc&includeAll'
+        request_url = '{}{}{}'.format(url, query, include_all)
+        r = client.get(request_url)
+        assert r.status_code == 200
+        obj = json.loads(r.data)
+        serialize.validate_ranking(obj)
+        assert len(obj['ranking']) == 2

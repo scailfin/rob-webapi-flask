@@ -14,7 +14,6 @@ from flowserv.model.template.schema import SortColumn
 from robflask.api.auth import ACCESS_TOKEN
 
 import flowserv.config.api as config
-import flowserv.util as util
 
 
 bp = Blueprint('benchmarks', __name__, url_prefix=config.API_PATH())
@@ -186,17 +185,15 @@ def get_benchmark_resource(benchmark_id, file_id):
     """
     from robflask.service.base import service
     with service() as api:
-        fh, file = api.benchmarks().get_result_file(
+        fh = api.benchmarks().get_result_file(
             benchmark_id=benchmark_id,
             file_id=file_id
         )
         attachment_filename = fh.name
-        last_modified = util.to_datetime(fh.created_at)
         mimetype = fh.mime_type
     return send_file(
-        file,
+        fh.open(),
         as_attachment=True,
         attachment_filename=attachment_filename,
-        last_modified=last_modified,
         mimetype=mimetype
     )
