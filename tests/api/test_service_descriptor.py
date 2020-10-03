@@ -10,8 +10,6 @@
 
 import json
 
-from robflask.version import __version__
-
 import flowserv.config.api as config
 import robflask.tests.serialize as serialize
 
@@ -22,4 +20,3 @@ def test_service_descriptor(client):
     assert r.status_code == 200
     obj = json.loads(r.data)
     serialize.validate_service_descriptor(obj)
-    assert obj['version'] == __version__

@@ -179,3 +179,13 @@ def test_submission_uploads(client):
     r = client.get(url, headers=headers_1)
     assert r.status_code == 200
     assert len(json.loads(r.data)['files']) == 0
+    # -- Error for upload request without file --------------------------------
+    data = dict()
+    url = SUBMISSION_FILES.format(config.API_PATH(), s_id)
+    r = client.post(
+        url,
+        data=data,
+        content_type='multipart/form-data',
+        headers=headers_1
+    )
+    assert r.status_code == 400

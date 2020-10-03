@@ -10,11 +10,10 @@
 submissions.
 """
 
-from io import BytesIO
-
 from flask import Blueprint, jsonify, make_response, request, send_file
 from werkzeug.utils import secure_filename
 
+from flowserv.model.files.base import FlaskFile
 from robflask.api.auth import ACCESS_TOKEN
 
 import flowserv.config.api as config
@@ -51,7 +50,7 @@ def list_files(submission_id):
     with service() as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
-        r = api.uploads().list_files(
+        r = api.uploads().list_uploaded_files(
             group_id=submission_id,
             user_id=api.authenticate(token).user_id
         )
@@ -90,16 +89,13 @@ def upload_file(submission_id):
             raise err.InvalidRequestError('empty file name')
         # Save uploaded file to a bytes buffer.
         filename = secure_filename(file.filename)
-        buf = BytesIO()
-        file.save(buf)
-        buf.seek(0)
         from robflask.service.base import service
         with service() as api:
             # Authentication of the user from the expected api_token in the
             # header will fail if the user is not logged in.
             r = api.uploads().upload_file(
                 group_id=submission_id,
-                file=buf,
+                file=FlaskFile(file),
                 name=filename,
                 user_id=api.authenticate(token).user_id
             )
@@ -137,12 +133,12 @@ def download_file(submission_id, file_id):
     """
     from robflask.service.base import service
     with service() as api:
-        fh, file = api.uploads().get_file(
+        fh = api.uploads().get_uploaded_file(
             group_id=submission_id,
             file_id=file_id
         )
         return send_file(
-            file,
+            fh.open(),
             as_attachment=True,
             attachment_filename=fh.name,
             mimetype=fh.mime_type

@@ -37,7 +37,7 @@ def create_app(test_config=None):
     # Create tha app. Follwoing the Twelve-Factor App methodology we configure
     # the Flask application from environment variables.
     app = Flask(__name__, instance_relative_config=True)
-    if test_config is not None:
+    if test_config is not None:  # pragma: no cover
         app.config.update(test_config)
     app.config['MAX_CONTENT_LENGTH'] = config.MAX_CONTENT_LENGTH()
     # Enable CORS
