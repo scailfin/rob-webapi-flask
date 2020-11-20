@@ -12,7 +12,7 @@ import json
 import os
 import time
 
-from flowserv.service.run.argument import FILE
+from flowserv.service.run.argument import serialize_fh
 from robflask.tests.submission import create_submission, upload_file
 
 import flowserv.config.api as config
@@ -34,8 +34,8 @@ def test_runs(client):
     url = '{}/submissions/{}/runs'.format(config.API_PATH(), s_id)
     body = {
         'arguments': [
-            {'id': 'names', 'value': FILE(file_id)},
-            {'id': 'greeting', 'value': 'Hi'}
+            {'name': 'names', 'value': serialize_fh(file_id)},
+            {'name': 'greeting', 'value': 'Hi'}
         ]
     }
     r = client.post(url, json=body, headers=headers_1)
@@ -176,8 +176,8 @@ def test_runs(client):
     url = '{}/submissions/{}/runs'.format(config.API_PATH(), s_id)
     body = {
         'arguments': [
-            {'id': 'names', 'value': FILE(file_id)},
-            {'id': 'greeting', 'value': 'Hi'}
+            {'name': 'names', 'value': serialize_fh(file_id)},
+            {'name': 'greeting', 'value': 'Hi'}
         ]
     }
     r = client.post(url, json=body, headers=headers_1)
