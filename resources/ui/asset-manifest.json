@@ -1,20 +1,19 @@
 {
   "files": {
-    "main.js": "/rob-ui/static/js/main.192c1156.chunk.js",
-    "main.js.map": "/rob-ui/static/js/main.192c1156.chunk.js.map",
-    "runtime-main.js": "/rob-ui/static/js/runtime-main.32f2d432.js",
-    "runtime-main.js.map": "/rob-ui/static/js/runtime-main.32f2d432.js.map",
-    "static/js/2.31a21406.chunk.js": "/rob-ui/static/js/2.31a21406.chunk.js",
-    "static/js/2.31a21406.chunk.js.map": "/rob-ui/static/js/2.31a21406.chunk.js.map",
+    "main.js": "/rob-ui/static/js/main.cc85535c.chunk.js",
+    "main.js.map": "/rob-ui/static/js/main.cc85535c.chunk.js.map",
+    "runtime-main.js": "/rob-ui/static/js/runtime-main.fe350346.js",
+    "runtime-main.js.map": "/rob-ui/static/js/runtime-main.fe350346.js.map",
+    "static/js/2.6f43e26e.chunk.js": "/rob-ui/static/js/2.6f43e26e.chunk.js",
+    "static/js/2.6f43e26e.chunk.js.map": "/rob-ui/static/js/2.6f43e26e.chunk.js.map",
     "index.html": "/rob-ui/index.html",
-    "precache-manifest.3946d08c1f412459bca8f706fc0b5f2c.js": "/rob-ui/precache-manifest.3946d08c1f412459bca8f706fc0b5f2c.js",
+    "precache-manifest.08f6f58760528e27c6e49f853f4cfd68.js": "/rob-ui/precache-manifest.08f6f58760528e27c6e49f853f4cfd68.js",
     "service-worker.js": "/rob-ui/service-worker.js",
-    "static/js/2.31a21406.chunk.js.LICENSE.txt": "/rob-ui/static/js/2.31a21406.chunk.js.LICENSE.txt",
     "static/media/rob-logo.png": "/rob-ui/static/media/rob-logo.e5f91271.png"
   },
   "entrypoints": [
-    "static/js/runtime-main.32f2d432.js",
-    "static/js/2.31a21406.chunk.js",
-    "static/js/main.192c1156.chunk.js"
+    "static/js/runtime-main.fe350346.js",
+    "static/js/2.6f43e26e.chunk.js",
+    "static/js/main.cc85535c.chunk.js"
   ]
 }
