@@ -17,7 +17,7 @@ expected to remain constant throughout the lifespan of a running application.
 
 import os
 
-from flowserv.config.api import API_BASEDIR
+from flowserv.config import FLOWSERV_BASEDIR, FLOWSERV_API_PATH
 
 
 """Environment variables that contain configuration parameters for the Web
@@ -34,7 +34,18 @@ ROB_WEBAPI_CONTENTLENGTH = 'ROB_WEBAPI_CONTENTLENGTH'
 
 # -- Helper methods to access configutation parameters ------------------------
 
-def LOG_DIR():
+def API_PATH() -> str:
+    """Get the API application path value from the service configuration.
+
+    Returns
+    -------
+    string
+    """
+    from robflask.service import service
+    return service.get(FLOWSERV_API_PATH)
+
+
+def LOG_DIR() -> str:
     """Get the logging directory for the Web API from the respective
     environment variable 'ROB_WEBAPI_LOG'. If the variable is not set a
     sub-folder 'log' in the API base directory use used as the default.
@@ -46,11 +57,12 @@ def LOG_DIR():
     log_dir = os.environ.get(ROB_WEBAPI_LOG)
     # If the variable is not set create a sub-folder in the API base directory
     if log_dir is None:
-        log_dir = os.path.join(API_BASEDIR(), 'log')
+        from robflask.service import service
+        log_dir = os.path.join(service.get(FLOWSERV_BASEDIR), 'log')
     return os.path.abspath(log_dir)
 
 
-def MAX_CONTENT_LENGTH():
+def MAX_CONTENT_LENGTH() -> str:
     """Get the maximum size for uploaded files from the respective environment
     variable 'ROB_WEBAPI_CONTENTLENGTH'. If the variable is not set the
     default value that is equal to 16MB is used.
@@ -64,9 +76,5 @@ def MAX_CONTENT_LENGTH():
     ValueError
     """
     value = os.environ.get(ROB_WEBAPI_CONTENTLENGTH)
-    if value is None:
-        # If the variable is not set use a default of 16MB
-        return 16 * 1024 * 1024
-    else:
-        # Convert the value to integer. This may raise a value error
-        return int(value)
+    # If the variable is not set use a default of 16MB
+    return 16 * 1024 * 1024 if value is None else int(value)

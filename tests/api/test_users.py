@@ -10,28 +10,25 @@
 
 import json
 
-from robflask.tests.user import USER_TOKEN
+from robflask.api.util import HEADER_TOKEN
 
-import flowserv.config.api as config
-import flowserv.tests.serialize as serialize
-import robflask.api.user as user
-import robflask.api.auth as auth
+import flowserv.view.user as labels
+import robflask.config as config
 
 
 LABELS = {
-    'ID': user.LABEL_ID,
-    'NAME': user.LABEL_NAME,
-    'PASSWORD': user.LABEL_PASSWORD,
-    'REQUEST_ID': 'requestId',
-    'TOKEN': USER_TOKEN,
-    'USERS': 'users',
-    'VERIFY': user.LABEL_VERIFY_USER
+    'ID': labels.USER_ID,
+    'NAME': labels.USER_NAME,
+    'PASSWORD': labels.USER_PASSWORD,
+    'REQUEST_ID': labels.REQUEST_ID,
+    'TOKEN': labels.USER_TOKEN,
+    'USERS': labels.USER_LIST,
+    'VERIFY': labels.VERIFY_USER
 }
 
 USER = {
     LABELS['NAME']: 'user1',
-    LABELS['PASSWORD']: 'pwd',
-    LABELS['VERIFY']: True
+    LABELS['PASSWORD']: 'pwd'
 }
 
 
@@ -50,7 +47,7 @@ def test_list_users(client):
     data = {LABELS['NAME']: 'user1', LABELS['PASSWORD']: 'pwd'}
     r = client.post(config.API_PATH() + '/users/login', json=data)
     token = json.loads(r.data)[LABELS['TOKEN']]
-    headers = {auth.HEADER_TOKEN: token}
+    headers = {HEADER_TOKEN: token}
     r = client.get(config.API_PATH() + '/users', headers=headers)
     assert r.status_code == 200
     assert len(json.loads(r.data)[LABELS['USERS']]) == 1
@@ -73,7 +70,6 @@ def test_register_user(client):
     r = client.post(config.API_PATH() + '/users/register', json=USER)
     assert r.status_code == 201
     obj = json.loads(r.data)
-    serialize.validate_user_handle(obj, False, inactive=True)
     user_id = obj[LABELS['ID']]
     user_name = obj[LABELS['NAME']]
     assert user_name == 'user1'
@@ -86,18 +82,15 @@ def test_register_user(client):
     data = {LABELS['ID']: user_id}
     r = client.post(config.API_PATH() + '/users/activate', json=data)
     assert r.status_code == 200
-    serialize.validate_user_handle(json.loads(r.data), False, inactive=False)
     data = {LABELS['NAME']: 'user1', LABELS['PASSWORD']: 'pwd'}
     r = client.post(config.API_PATH() + '/users/login', json=data)
     assert r.status_code == 200
-    serialize.validate_user_handle(json.loads(r.data), True, inactive=False)
     token = json.loads(r.data)[LABELS['TOKEN']]
-    headers = {auth.HEADER_TOKEN: token}
+    headers = {HEADER_TOKEN: token}
     # Whoami (user1)
     r = client.get(config.API_PATH() + '/users/whoami', headers=headers)
     assert r.status_code == 200
     obj = json.loads(r.data)
-    serialize.validate_user_handle(obj, True, inactive=False)
     assert obj[LABELS['ID']] == user_id
     assert obj[LABELS['NAME']] == 'user1'
     assert obj[LABELS['TOKEN']] == token
@@ -110,9 +103,10 @@ def test_register_user(client):
     # Logout user that is currently logged in
     r = client.post(config.API_PATH() + '/users/logout', headers=headers)
     assert r.status_code == 200
-    # After logout the token is invalid (list and whaomi)
+    # After logout the token is invalid but we can still get a list of users.
     r = client.get(config.API_PATH() + '/users', headers=headers)
-    assert r.status_code == 403
+    assert r.status_code == 200
+    # Whoami will fail with an invalid token.
     r = client.get(config.API_PATH() + '/users/whoami', headers=headers)
     assert r.status_code == 403
 
@@ -126,7 +120,7 @@ def test_reset_password(client):
     data = {LABELS['NAME']: 'user1', LABELS['PASSWORD']: 'pwd'}
     r = client.post(config.API_PATH() + '/users/login', json=data)
     token = json.loads(r.data)[LABELS['TOKEN']]
-    headers = {auth.HEADER_TOKEN: token}
+    headers = {HEADER_TOKEN: token}
     r = client.get(config.API_PATH() + '/users/whoami', headers=headers)
     assert r.status_code == 200
     # Reset password for user1. This should also invalidate the access token.
@@ -140,7 +134,7 @@ def test_reset_password(client):
     r = client.post(url, json=data, headers=headers)
     assert r.status_code == 200
     r = client.get(config.API_PATH() + '/users', headers=headers)
-    assert r.status_code == 403
+    assert r.status_code == 200
     # The old password is invalid
     data = {LABELS['NAME']: 'user1', LABELS['PASSWORD']: 'pwd'}
     r = client.post(config.API_PATH() + '/users/login', json=data)

@@ -7,4 +7,4 @@
 # terms of the MIT License; see LICENSE file for more details.
 
 """Information about the current version of the package."""
-__version__ = '0.6.0'  # pragma: no cover
+__version__ = '0.6.0'

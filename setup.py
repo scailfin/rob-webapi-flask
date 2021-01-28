@@ -15,7 +15,7 @@ from setuptools import setup, find_packages
 """Required packages for install, test, docs, and tests."""
 
 install_requires = [
-    'flowserv-core>=0.7.0',
+    'flowserv-core>=0.7.1',
     'flask',
     'flask_cors'
 ]
