@@ -23,6 +23,7 @@ import robflask.error as rob
 import robflask.config as config
 
 
+# Initialize the logger.
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
 handler = logging.StreamHandler(sys.stdout)
@@ -148,7 +149,7 @@ def create_app(test_config=None):
         return make_response(jsonify({'error': str(error)}), 413)
 
     @app.errorhandler(500)
-    def internal_error(error):
+    def internal_error(error):  # pragma: no cover
         """Exception handler that logs internal server errors."""
         app.logger.error(error)
         return make_response(jsonify({'error': str(error)}), 500)

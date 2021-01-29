@@ -8,14 +8,8 @@
 
 """Helper method for unit tests to create app users."""
 
-import json
-
-import flowserv.config.api as config
-import robflask.api.user as user
-
-
-"""Name of the element in the response that contains the access token."""
-USER_TOKEN = 'token'
+import flowserv.view.user as labels
+import robflask.config as config
 
 
 def create_user(client, username):
@@ -36,13 +30,13 @@ def create_user(client, username):
     (string, string)
     """
     data = {
-        user.LABEL_NAME: username,
-        user.LABEL_PASSWORD: username,
-        user.LABEL_VERIFY_USER: False
+        labels.USER_NAME: username,
+        labels.USER_PASSWORD: username,
+        labels.VERIFY_USER: False
     }
     r = client.post(config.API_PATH() + '/users/register', json=data)
-    user_id = json.loads(r.data)[user.LABEL_ID]
-    data = {user.LABEL_NAME: username, user.LABEL_PASSWORD: username}
+    user_id = r.json[labels.USER_ID]
+    data = {labels.USER_NAME: username, labels.USER_PASSWORD: username}
     r = client.post(config.API_PATH() + '/users/login', json=data)
-    token = json.loads(r.data)[USER_TOKEN]
+    token = r.json[labels.USER_TOKEN]
     return user_id, token

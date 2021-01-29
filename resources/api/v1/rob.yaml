@@ -1022,7 +1022,7 @@ definitions:
               items:
                 type: object
                 required:
-                - id
+                - name
                 - value
                 properties:
                   id:

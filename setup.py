@@ -15,7 +15,7 @@ from setuptools import setup, find_packages
 """Required packages for install, test, docs, and tests."""
 
 install_requires = [
-    'flowserv-core>=0.5.1',
+    'flowserv-core>=0.7.1',
     'flask',
     'flask_cors'
 ]
@@ -28,6 +28,8 @@ tests_require = [
     'tox'
 ]
 
+dev_require = ['flake8', 'python-language-server']
+
 
 extras_require = {
     'docs': [
@@ -35,6 +37,7 @@ extras_require = {
         'sphinx-rtd-theme'
     ],
     'tests': tests_require,
+    'dev': dev_require + tests_require
 }
 
 

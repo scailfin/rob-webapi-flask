@@ -31,3 +31,8 @@
 
 * Change flowser-core dependency to 0.5.1
 * Adjust for new file objects used by flowserv
+
+
+### 0.6.0 - 2021-01-29
+
+* Adjust API to changes in flowserv-core (0.7.1).

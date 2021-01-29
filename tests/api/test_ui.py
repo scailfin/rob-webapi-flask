@@ -15,6 +15,10 @@ def test_ui_files(client):
     url = 'rob-ui'
     r = client.get(url)
     assert r.status_code == 308
+    # -- Get home page --------------------------------------------------------
+    url = 'rob-ui/'
+    r = client.get(url)
+    assert r.status_code == 200
     # -- Get image file -------------------------------------------------------
     url = 'rob-ui/index.html'
     r = client.get(url)

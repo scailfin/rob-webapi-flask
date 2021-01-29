@@ -7,7 +7,6 @@ import errno
 import os
 import json
 import sys
-import time
 
 from flowserv.service.postproc.client import Runs
 
@@ -25,9 +24,6 @@ def main(rundir, outputfile):
         filename = run.get_file(name='results/analytics.json')
         doc = util.read_object(filename=filename)
         results.append(doc)
-        # Delay execution to allow for testing running post-processing
-        # workflows
-        time.sleep(1)
     # Write analytics results. Ensure that output directory exists:
     # influenced by http://stackoverflow.com/a/12517490
     if not os.path.exists(os.path.dirname(outputfile)):

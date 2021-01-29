@@ -12,34 +12,20 @@ from flask import Blueprint, jsonify, make_response, request
 
 from flowserv.error import UnknownUserError
 
-from robflask.api.auth import ACCESS_TOKEN
-from robflask.api.util import jsonbody
+from robflask.api.util import ACCESS_TOKEN, jsonbody
 
-import flowserv.config.api as config
+import flowserv.view.group as labels
+import robflask.config as config
 import robflask.error as err
 
 
 bp = Blueprint('submissions', __name__, url_prefix=config.API_PATH())
 
 
-@bp.route('/benchmarks/<string:benchmark_id>/submissions', methods=['POST'])
-def create_submission(benchmark_id):
+@bp.route('/workflows/<string:workflow_id>/groups', methods=['POST'])
+def create_submission(workflow_id):
     """Create a new submission for a given benchmark. The user has to be
     authenticated in order to be able to create a new submission.
-
-    Parameters
-    ----------
-    benchmark_id: string
-        Unique benchmark identifier
-
-    Returns
-    -------
-    flask.response_class
-
-    Raises
-    ------
-    robflask.error.InvalidRequest
-    flowserv.error.UnauthenticatedAccessError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -48,22 +34,21 @@ def create_submission(benchmark_id):
     # submission name and an optional list of member identifier.
     obj = jsonbody(
         request,
-        mandatory=['name'],
-        optional=['members']
+        mandatory=[labels.GROUP_NAME],
+        optional=[labels.GROUP_MEMBERS]
     )
-    name = obj['name']
-    members = obj.get('members')
+    name = obj[labels.GROUP_NAME]
+    members = obj.get(labels.GROUP_MEMBERS)
     if members is not None and not isinstance(members, list):
-        raise err.InvalidRequestError('members not a list')
-    from robflask.service.base import service
-    with service() as api:
+        raise err.InvalidRequestError('{} not a list'.format(labels.GROUP_MEMBERS))
+    from robflask.service import service
+    with service(access_token=token) as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
         try:
-            r = api.submissions().create_submission(
-                benchmark_id=benchmark_id,
+            r = api.groups().create_group(
+                workflow_id=workflow_id,
                 name=name,
-                user_id=api.authenticate(token).user_id,
                 members=members
             )
         except UnknownUserError as ex:
@@ -73,153 +58,50 @@ def create_submission(benchmark_id):
     return make_response(jsonify(r), 201)
 
 
-@bp.route('/benchmarks/<string:benchmark_id>/submissions', methods=['GET'])
-def list_submission(benchmark_id):
-    """Get a list of all submissions for a given benchmark. The user has to be
-    authenticated in order to be able to access the submission list.
-
-    Parameters
-    ----------
-    benchmark_id: string
-        Unique benchmark identifier
-
-    Returns
-    -------
-    flask.response_class
-
-    Raises
-    ------
-    flowserv.error.UnauthenticatedAccessError
-    """
-    # Get the access token first to raise an error immediately if no token is
-    # present (to avoid unnecessarily instantiating the service API).
-    token = ACCESS_TOKEN(request)
-    from robflask.service.base import service
-    with service() as api:
-        # Authenticate the user from the api_token in the header. This
-        # will raise an exception if the user is currently not logged in.
-        r = api.submissions().list_submissions(
-            benchmark_id=benchmark_id,
-            user_id=api.authenticate(token).user_id
-        )
-    return make_response(jsonify(r), 200)
-
-
-@bp.route('/submissions', methods=['GET'])
-def list_user_submission():
-    """Get a list of all submissions that the authenticated user is a member
-    of.
-
-    Returns
-    -------
-    flask.response_class
-
-    Raises
-    ------
-    flowserv.error.UnauthenticatedAccessError
-    """
-    # Get the access token first to raise an error immediately if no token is
-    # present (to avoid unnecessarily instantiating the service API).
-    token = ACCESS_TOKEN(request)
-    from robflask.service.base import service
-    with service() as api:
-        # Authentication of the user from the expected api_token in the header
-        # will fail if no token is given or if the user is not logged in.
-        r = api.submissions().list_submissions(
-            user_id=api.authenticate(token).user_id
-        )
-    return make_response(jsonify(r), 200)
-
-
-@bp.route('/submissions/<string:submission_id>', methods=['DELETE'])
-def delete_submission(submission_id):
+@bp.route('/groups/<string:group_id>', methods=['DELETE'])
+def delete_submission(group_id):
     """Delete the submission with the given identifier. The user has to be a
     submission member in order to be authorized to delete the submission.
-
-    Parameters
-    ----------
-    submission_id: string
-        Unique submission identifier
-
-    Returns
-    -------
-    flask.response_class
-
-    Raises
-    ------
-    flowserv.error.UnauthenticatedAccessError
-    flowserv.error.UnauthorizedAccessError
-    flowserv.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
-    token = ACCESS_TOKEN(request)
-    from robflask.service.base import service
-    with service() as api:
-        # Authentication of the user from the expected api_token in the header
-        # will fail if no token is given or if the user is not logged in.
-        api.submissions().delete_submission(
-            submission_id=submission_id,
-            user_id=api.authenticate(token).user_id
-        )
+    from robflask.service import service
+    with service(access_token=ACCESS_TOKEN(request)) as api:
+        api.groups().delete_group(group_id=group_id)
     return make_response(jsonify(dict()), 204)
 
 
-@bp.route('/submissions/<string:submission_id>', methods=['GET'])
-def get_submission(submission_id):
+@bp.route('/groups/<string:group_id>', methods=['GET'])
+def get_submission(group_id):
     """Get handle for the submission with the given identifier. The user has to
     be authenticated in order to access a submission.
-
-    Parameters
-    ----------
-    submission_id: string
-        Unique submission identifier
-
-    Returns
-    -------
-    flask.response_class
-
-    Raises
-    ------
-    flowserv.error.UnauthenticatedAccessError
-    flowserv.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
-    token = ACCESS_TOKEN(request)
-    from robflask.service.base import service
-    with service() as api:
-        # Authentication of the user from the expected api_token in the header
-        # will fail if no token is given or if the user is not logged in.
-        r = api.submissions().get_submission(
-            submission_id=submission_id,
-            user_id=api.authenticate(token).user_id
-        )
+    from robflask.service import service
+    with service(access_token=ACCESS_TOKEN(request)) as api:
+        r = api.groups().get_group(group_id=group_id)
     return make_response(jsonify(r), 200)
 
 
-@bp.route('/submissions/<string:submission_id>', methods=['PUT'])
-def update_submission(submission_id):
+@bp.route('/workflows/<string:workflow_id>/groups', methods=['GET'])
+def list_submission(workflow_id):
+    """Get a list of all submissions for a given benchmark. The user has to be
+    authenticated in order to be able to access the submission list.
+    """
+    # Get the access token first to raise an error immediately if no token is
+    # present (to avoid unnecessarily instantiating the service API).
+    from robflask.service import service
+    with service(access_token=ACCESS_TOKEN(request)) as api:
+        r = api.groups().list_groups(workflow_id=workflow_id)
+    return make_response(jsonify(r), 200)
+
+
+@bp.route('/groups/<string:group_id>', methods=['PUT'])
+def update_submission(group_id):
     """Update the submission with the given identifier. The request body can
     contain a modified submission name and/or a modified list of submission
     members.
-
-    Parameters
-    ----------
-    submission_id: string
-        Unique submission identifier
-
-    Returns
-    -------
-    flask.response_class
-
-    Raises
-    ------
-    robflask.error.InvalidRequest
-    flowserv.error.ConstraintViolationError
-    flowserv.error.UnauthenticatedAccessError
-    flowserv.error.UnauthorizedAccessError
-    flowserv.error.UnknownWorkflowGroupError
     """
     # Get the access token first to raise an error immediately if no token is
     # present (to avoid unnecessarily instantiating the service API).
@@ -229,17 +111,16 @@ def update_submission(submission_id):
     obj = jsonbody(
         request,
         mandatory=[],
-        optional=['name', 'members']
+        optional=[labels.GROUP_NAME, labels.GROUP_MEMBERS]
     )
-    name = obj.get('name')
-    members = obj.get('members')
-    from robflask.service.base import service
-    with service() as api:
+    name = obj.get(labels.GROUP_NAME)
+    members = obj.get(labels.GROUP_MEMBERS)
+    from robflask.service import service
+    with service(access_token=token) as api:
         # Authentication of the user from the expected api_token in the header
         # will fail if no token is given or if the user is not logged in.
-        r = api.submissions().update_submission(
-            submission_id=submission_id,
-            user_id=api.authenticate(token).user_id,
+        r = api.groups().update_group(
+            group_id=group_id,
             name=name,
             members=members
         )

@@ -14,8 +14,7 @@ import os
 
 import pytest
 
-from flowserv.config.api import FLOWSERV_API_BASEDIR
-from flowserv.config.database import FLOWSERV_DB
+from flowserv.model.database import DB, TEST_DB
 
 import robflask.config as config
 
@@ -26,28 +25,30 @@ ROB_UI_PATH = os.path.join(DIR, '../../resources/ui')
 
 
 @pytest.fixture
-def client(tmpdir):
+def benchmark_id():
+    """Identifier for the created test benchmark."""
+    return 'helloworld'
+
+
+@pytest.fixture
+def client(benchmark_id, tmpdir):
     """Create the app client."""
-    # Create a temporary file to use as the database file
-    os.environ[FLOWSERV_DB] = 'sqlite:///{}/flowserv.db'.format(str(tmpdir))
-    os.environ[FLOWSERV_API_BASEDIR] = str(tmpdir)
-    from flowserv.service.database import database
-    database.init()
-    # Create a single benchmark
-    from robflask.service.base import service
+    # Set the environment variables and create the database.
+    connect_url = TEST_DB(tmpdir)
+    DB(connect_url=connect_url).init()
+    # Create a single benchmark. Need to ensure that the API factory points to
+    # the newly created database.
+    from robflask.service import init_service
+    init_service(basedir=tmpdir, database=connect_url)
+    from robflask.service import service
     with service() as api:
         # Get the benchmark repository instance from the API
         api.workflows().create_workflow(
+            identifier=benchmark_id,
             name='Hello World',
             description='Hello World Demo',
             source=BENCHMARK_DIR
         )
-        # Need to set the file store in the engine and the backend to the new
-        # instance that refers to the current tmpdir.
-        from flowserv.service.files import get_filestore
-        api.engine.fs = get_filestore()
-        from flowserv.service.backend import backend
-        backend.fs = api.engine.fs
     # Set the maximum upload file size to 1KB
     os.environ[config.ROB_WEBAPI_CONTENTLENGTH] = '1024'
     # Set the UI path.
