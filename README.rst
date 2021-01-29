@@ -5,6 +5,11 @@
    :target: https://github.com/scailfin/flowserv-core/actions?query=workflow%3A%22build%22
 
 
+.. image:: https://codecov.io/gh/scailfin/rob-webapi-flask/branch/master/graph/badge.svg?token=iE1ZYCA0lS
+    :target: https://codecov.io/gh/scailfin/rob-webapi-flask
+
+
+
 .. figure:: https://github.com/scailfin/rob-webapi-flask/raw/master/docs/graphics/header-webapi.png
    :align: center
    :alt: ROB Web Service Implementation (using Flask)
