@@ -29,6 +29,7 @@ BENCHMARK_FILE = '{}/workflows/{}/downloads/files/{}'
 BENCHMARK_GET = '{}/workflows/{}'
 BENCHMARK_LEADERBOARD = '{}/workflows/{}/leaderboard'
 RUN_ARCHIVE = '{}/runs/{}/downloads/archive'
+RUN_FILE = '{}/runs/{}/downloads/files/{}'
 RUN_GET = '{}/runs/{}'
 RUN_CANCEL = RUN_GET
 RUN_DELETE = RUN_GET
@@ -156,12 +157,8 @@ def test_submission_run(prepare_submission):
     assert len(resources) == 2
     assert 'results/greetings.txt' in resources
     assert 'results/analytics.json' in resources
-    res_id = resources['results/greetings.txt']['id']
-    res_url = '{}/runs/{}/downloads/resources/{}'.format(
-        config.API_PATH(),
-        run_id,
-        res_id
-    )
+    file_id = resources['results/greetings.txt']['id']
+    res_url = RUN_FILE.format(config.API_PATH(), run_id, file_id)
     r = client.get(res_url, headers=headers)
     assert r.status_code == 200
     data = str(r.data)

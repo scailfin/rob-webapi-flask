@@ -33,6 +33,6 @@
 * Adjust for new file objects used by flowserv
 
 
-### 0.6.0 - 2020-11-20
+### 0.6.0 - 2021-01-29
 
-* Change flowser-core dependency to 0.6.0
+* Adjust API to changes in flowserv-core (0.7.1).
