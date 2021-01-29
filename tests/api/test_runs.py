@@ -157,8 +157,8 @@ def test_submission_run(prepare_submission):
     assert len(resources) == 2
     assert 'results/greetings.txt' in resources
     assert 'results/analytics.json' in resources
-    file_id = resources['results/greetings.txt']['id']
-    res_url = RUN_FILE.format(config.API_PATH(), run_id, file_id)
+    result_file_id = resources['results/greetings.txt']['id']
+    res_url = RUN_FILE.format(config.API_PATH(), run_id, result_file_id)
     r = client.get(res_url, headers=headers)
     assert r.status_code == 200
     data = str(r.data)
